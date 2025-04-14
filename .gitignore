@@ -1,0 +1,11 @@
+# build folder
+dist/
+
+# cache
+.parcel-cache
+
+# node_modules
+node_modules/
+
+# nextjs
+.next

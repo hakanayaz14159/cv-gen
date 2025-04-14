@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "skipLibCheck": true,
+    "alwaysStrict": true,
+    "strict": true,
+    "incremental": true,
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "isolatedModules": true
+  },
+  "include": ["src/lib/**/*.ts"],
+  "exclude": ["node_modules"]
+}
