@@ -1,17 +1,21 @@
 "use client";
 import PDFViewer from "@/components/PDFViewer";
 import { softwareEngineerCV as dummyCV } from "helper/dummyCV";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { CVGeneratorConfig, CVInformations } from "../../lib/types";
 import PDFBuilder from "@/components/PDFBuilder";
 
 export default function Page() {
-  const [mergedCV, setMergedCV] = useState<CVInformations>(null);
+  // Initialize with dummy CV to avoid null state
+  const [mergedCV, setMergedCV] = useState<CVInformations>(dummyCV);
   const [config, setConfig] = useState<Partial<CVGeneratorConfig>>({});
 
   const onCVChange = useCallback(
     (personalCV: Partial<CVInformations>) => {
-      setMergedCV((p) => Object.assign({}, dummyCV, personalCV));
+      // Merge personal CV with dummy CV
+      const merged = Object.assign({}, dummyCV, personalCV);
+      console.log('CV updated');
+      setMergedCV(merged);
     },
     [setMergedCV],
   );
