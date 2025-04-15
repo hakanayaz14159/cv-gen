@@ -24,7 +24,20 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
   const [currentSkill, setCurrentSkill] = useState("");
   const [currentSkillExperience, setCurrentSkillExperience] = useState<number>(0);
   const [currentSkillFeatured, setCurrentSkillFeatured] = useState<boolean>(false);
-  const isAddingSkill = useRef(false); // Ref to track if we're in the process of adding a skill
+
+  // Refs to prevent double submissions
+  const isAddingSkill = useRef(false);
+  const isAddingSkillGroup = useRef(false);
+  const isAddingResponsibility = useRef(false);
+  const isAddingTechStack = useRef(false);
+  const isAddingExperience = useRef(false);
+  const isAddingProjectResponsibility = useRef(false);
+  const isAddingProjectTechStack = useRef(false);
+  const isAddingProject = useRef(false);
+  const isAddingEducationNote = useRef(false);
+  const isAddingEducation = useRef(false);
+  const isAddingCertificate = useRef(false);
+  const isAddingLanguage = useRef(false);
 
   // Experience state
   const [companyName, setCompanyName] = useState("");
@@ -37,6 +50,73 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
   const [responsibilities, setResponsibilities] = useState<string[]>([]);
   const [techStack, setTechStack] = useState("");
   const [techStacks, setTechStacks] = useState<string[]>([]);
+
+  // Function to handle adding experience - defined outside the click handler
+  const handleAddExperience = () => {
+    if (isAddingExperience.current || !companyName.trim() || !role.trim() || !fromDate) {
+      return;
+    }
+
+    isAddingExperience.current = true;
+
+    // Capture current values
+    const experienceData = {
+      companyName: companyName.trim(),
+      role: role.trim(),
+      description: description.trim(),
+      responsibilities: [...responsibilities],
+      techStacks: [...techStacks],
+      fromDate,
+      toDate,
+      isCurrentPosition
+    };
+
+    // Reset form fields immediately
+    setCompanyName("");
+    setRole("");
+    setFromDate("");
+    setToDate("");
+    setIsCurrentPosition(false);
+    setDescription("");
+    setResponsibility("");
+    setResponsibilities([]);
+    setTechStack("");
+    setTechStacks([]);
+
+    // Create position object
+    const position: CVPosition = {
+      role: experienceData.role,
+      fromDate: new Date(experienceData.fromDate),
+      description: experienceData.description,
+      responsibilities: experienceData.responsibilities
+    };
+
+    if (!experienceData.isCurrentPosition && experienceData.toDate) {
+      position.toDate = new Date(experienceData.toDate);
+    }
+
+    // Create experience object
+    const experience: CVExperience = {
+      companyName: experienceData.companyName,
+      positions: [position],
+      techStack: experienceData.techStacks
+    };
+
+    // Update CV state
+    setPersonalCV((p) => {
+      const newCV = { ...p };
+      if (!newCV.experiences) {
+        newCV.experiences = [];
+      }
+      newCV.experiences = [...newCV.experiences, experience];
+      return newCV;
+    });
+
+    // Reset flag after a delay
+    setTimeout(() => {
+      isAddingExperience.current = false;
+    }, 200);
+  };
 
   // Project state
   const [projectName, setProjectName] = useState("");
@@ -51,6 +131,73 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
   const [projectTechStacks, setProjectTechStacks] = useState<string[]>([]);
   const [projectType, setProjectType] = useState("");
 
+  // Function to handle adding project - defined outside the click handler
+  const handleAddProject = () => {
+    if (isAddingProject.current || !projectName.trim() || !projectRole.trim() || !projectFromDate || !projectType.trim()) {
+      return;
+    }
+
+    isAddingProject.current = true;
+
+    // Capture current values
+    const projectData = {
+      projectName: projectName.trim(),
+      projectRole: projectRole.trim(),
+      projectDescription: projectDescription.trim(),
+      projectType: projectType.trim(),
+      projectResponsibilities: [...projectResponsibilities],
+      projectTechStacks: [...projectTechStacks],
+      projectFromDate,
+      projectToDate,
+      isCurrentProject
+    };
+
+    // Reset form fields immediately
+    setProjectName("");
+    setProjectRole("");
+    setProjectFromDate("");
+    setProjectToDate("");
+    setIsCurrentProject(false);
+    setProjectDescription("");
+    setProjectResponsibility("");
+    setProjectResponsibilities([]);
+    setProjectTechStack("");
+    setProjectTechStacks([]);
+    setProjectType("");
+
+    // Create position object
+    const position: CVPosition = {
+      role: projectData.projectRole,
+      fromDate: new Date(projectData.projectFromDate),
+      description: projectData.projectDescription,
+      responsibilities: projectData.projectResponsibilities
+    };
+
+    if (!projectData.isCurrentProject && projectData.projectToDate) {
+      position.toDate = new Date(projectData.projectToDate);
+    }
+
+    // Update CV state
+    setPersonalCV((p) => {
+      const newCV = { ...p };
+      if (!newCV.projects) {
+        newCV.projects = [];
+      }
+      newCV.projects = [...newCV.projects, {
+        projectName: projectData.projectName,
+        positions: [position],
+        techStack: projectData.projectTechStacks,
+        type: projectData.projectType
+      }];
+      return newCV;
+    });
+
+    // Reset flag after a delay
+    setTimeout(() => {
+      isAddingProject.current = false;
+    }, 200);
+  };
+
   // Education state
   const [schoolName, setSchoolName] = useState("");
   const [schoolLocation, setSchoolLocation] = useState("");
@@ -62,6 +209,74 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
   const [educationNote, setEducationNote] = useState("");
   const [educationNotes, setEducationNotes] = useState<string[]>([]);
 
+  // Function to handle adding education - defined outside the click handler
+  const handleAddEducation = () => {
+    if (isAddingEducation.current || !schoolName.trim() || !schoolLocation.trim() || !degree.trim() || !entranceYear) {
+      return;
+    }
+
+    isAddingEducation.current = true;
+
+    // Capture current values
+    const educationData = {
+      schoolName: schoolName.trim(),
+      schoolLocation: schoolLocation.trim(),
+      degree: degree.trim(),
+      entranceYear,
+      completionYear,
+      schoolStatus,
+      graduationScore,
+      educationNotes: [...educationNotes]
+    };
+
+    // Reset form fields immediately
+    setSchoolName("");
+    setSchoolLocation("");
+    setDegree("");
+    setEntranceYear("");
+    setCompletionYear("");
+    setSchoolStatus(SchoolStatus.COMPLETED);
+    setGraduationScore(undefined);
+    setEducationNote("");
+    setEducationNotes([]);
+
+    // Create education object
+    const education: CVEducation = {
+      schoolName: educationData.schoolName,
+      schoolLocation: educationData.schoolLocation,
+      degree: educationData.degree,
+      entranceYear: new Date(educationData.entranceYear),
+      currentStatus: educationData.schoolStatus
+    };
+
+    if (educationData.schoolStatus !== SchoolStatus.CONTINUING && educationData.completionYear) {
+      education.completionYear = new Date(educationData.completionYear);
+    }
+
+    if (educationData.graduationScore !== undefined) {
+      education.graduationScore = educationData.graduationScore;
+    }
+
+    if (educationData.educationNotes.length > 0) {
+      education.notes = educationData.educationNotes;
+    }
+
+    // Update CV state
+    setPersonalCV((p) => {
+      const newCV = { ...p };
+      if (!newCV.educations) {
+        newCV.educations = [];
+      }
+      newCV.educations = [...newCV.educations, education];
+      return newCV;
+    });
+
+    // Reset flag after a delay
+    setTimeout(() => {
+      isAddingEducation.current = false;
+    }, 200);
+  };
+
   // Certificate state
   const [certificateName, setCertificateName] = useState("");
   const [issuingOrganization, setIssuingOrganization] = useState("");
@@ -70,9 +285,106 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
   const [hasExpiry, setHasExpiry] = useState(false);
   const [verificationId, setVerificationId] = useState("");
 
+  // Function to handle adding certificate - defined outside the click handler
+  const handleAddCertificate = () => {
+    if (isAddingCertificate.current || !certificateName.trim() || !issuingOrganization.trim() || !acquiredDate) {
+      return;
+    }
+
+    isAddingCertificate.current = true;
+
+    // Capture current values
+    const certificateData = {
+      certificateName: certificateName.trim(),
+      issuingOrganization: issuingOrganization.trim(),
+      acquiredDate,
+      expiryDate,
+      hasExpiry,
+      verificationId: verificationId.trim()
+    };
+
+    // Reset form fields immediately
+    setCertificateName("");
+    setIssuingOrganization("");
+    setAcquiredDate("");
+    setExpiryDate("");
+    setHasExpiry(false);
+    setVerificationId("");
+
+    // Create certificate object
+    const certificate: CVCertificate = {
+      name: certificateData.certificateName,
+      issuingOrganization: certificateData.issuingOrganization,
+      acquiredWhen: new Date(certificateData.acquiredDate)
+    };
+
+    if (certificateData.hasExpiry && certificateData.expiryDate) {
+      certificate.endsWhen = new Date(certificateData.expiryDate);
+    }
+
+    if (certificateData.verificationId !== "") {
+      certificate.verificationId = certificateData.verificationId;
+    }
+
+    // Update CV state
+    setPersonalCV((p) => {
+      const newCV = { ...p };
+      if (!newCV.certificates) {
+        newCV.certificates = [];
+      }
+      newCV.certificates = [...newCV.certificates, certificate];
+      return newCV;
+    });
+
+    // Reset flag after a delay
+    setTimeout(() => {
+      isAddingCertificate.current = false;
+    }, 200);
+  };
+
   // Language state
   const [language, setLanguage] = useState("");
   const [proficiency, setProficiency] = useState<LanguageProficiency>(LanguageProficiency.B2);
+
+  // Function to handle adding language - defined outside the click handler
+  const handleAddLanguage = () => {
+    if (isAddingLanguage.current || !language.trim()) {
+      return;
+    }
+
+    isAddingLanguage.current = true;
+
+    // Capture current values
+    const languageData = {
+      language: language.trim(),
+      proficiency
+    };
+
+    // Reset form fields immediately
+    setLanguage("");
+    setProficiency(LanguageProficiency.B2);
+
+    // Create language object
+    const lang: CVLanguage = {
+      language: languageData.language,
+      proficiency: languageData.proficiency
+    };
+
+    // Update CV state
+    setPersonalCV((p) => {
+      const newCV = { ...p };
+      if (!newCV.languages) {
+        newCV.languages = [];
+      }
+      newCV.languages = [...newCV.languages, lang];
+      return newCV;
+    });
+
+    // Reset flag after a delay
+    setTimeout(() => {
+      isAddingLanguage.current = false;
+    }, 200);
+  };
 
   useEffect(() => {
     changeCB(personalCV);
@@ -349,18 +661,33 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
               <button
                 className="btn btn-neutral join-item"
                 onClick={() => {
+                  // Prevent multiple clicks
+                  if (isAddingSkillGroup.current) return;
+
                   if (skillGroup.trim() !== "" && !skillGroups.includes(skillGroup)) {
-                    setSkillGroups([...skillGroups, skillGroup]);
+                    isAddingSkillGroup.current = true;
+
+                    const trimmedGroupName = skillGroup.trim();
+
+                    // Update state
+                    setSkillGroups([...skillGroups, trimmedGroupName]);
                     setPersonalCV((p) => {
                       if (!p.skillDetails) {
                         p.skillDetails = {};
                       }
-                      if (!p.skillDetails[skillGroup]) {
-                        p.skillDetails[skillGroup] = [];
+                      if (!p.skillDetails[trimmedGroupName]) {
+                        p.skillDetails[trimmedGroupName] = [];
                       }
                       return Object.assign({}, p);
                     });
+
+                    // Reset input
                     setSkillGroup("");
+
+                    // Reset flag after a short delay
+                    setTimeout(() => {
+                      isAddingSkillGroup.current = false;
+                    }, 100);
                   }
                 }}
               >
@@ -596,9 +923,24 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
               <button
                 className="btn btn-neutral join-item"
                 onClick={() => {
+                  // Prevent multiple clicks
+                  if (isAddingResponsibility.current) return;
+
                   if (responsibility.trim() !== "") {
-                    setResponsibilities([...responsibilities, responsibility]);
+                    isAddingResponsibility.current = true;
+
+                    const trimmedResponsibility = responsibility.trim();
+
+                    // Update state
+                    setResponsibilities([...responsibilities, trimmedResponsibility]);
+
+                    // Reset input
                     setResponsibility("");
+
+                    // Reset flag after a short delay
+                    setTimeout(() => {
+                      isAddingResponsibility.current = false;
+                    }, 100);
                   }
                 }}
               >
@@ -638,9 +980,24 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
               <button
                 className="btn btn-neutral join-item"
                 onClick={() => {
+                  // Prevent multiple clicks
+                  if (isAddingTechStack.current) return;
+
                   if (techStack.trim() !== "") {
-                    setTechStacks([...techStacks, techStack]);
+                    isAddingTechStack.current = true;
+
+                    const trimmedTechStack = techStack.trim();
+
+                    // Update state
+                    setTechStacks([...techStacks, trimmedTechStack]);
+
+                    // Reset input
                     setTechStack("");
+
+                    // Reset flag after a short delay
+                    setTimeout(() => {
+                      isAddingTechStack.current = false;
+                    }, 100);
                   }
                 }}
               >
@@ -668,46 +1025,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
             <button
               className="btn btn-primary w-full mt-4"
-              onClick={() => {
-                if (companyName.trim() !== "" && role.trim() !== "" && fromDate) {
-                  const position: CVPosition = {
-                    role,
-                    fromDate: new Date(fromDate),
-                    description,
-                    responsibilities: [...responsibilities]
-                  };
-
-                  if (!isCurrentPosition && toDate) {
-                    position.toDate = new Date(toDate);
-                  }
-
-                  const experience: CVExperience = {
-                    companyName,
-                    positions: [position],
-                    techStack: [...techStacks]
-                  };
-
-                  setPersonalCV((p) => {
-                    if (!p.experiences) {
-                      p.experiences = [];
-                    }
-                    p.experiences = [...p.experiences, experience];
-                    return Object.assign({}, p);
-                  });
-
-                  // Reset form
-                  setCompanyName("");
-                  setRole("");
-                  setFromDate("");
-                  setToDate("");
-                  setIsCurrentPosition(false);
-                  setDescription("");
-                  setResponsibility("");
-                  setResponsibilities([]);
-                  setTechStack("");
-                  setTechStacks([]);
-                }
-              }}
+              onClick={handleAddExperience}
             >
               Add Experience
             </button>
@@ -860,9 +1178,24 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
               <button
                 className="btn btn-neutral join-item"
                 onClick={() => {
+                  // Prevent multiple clicks
+                  if (isAddingProjectResponsibility.current) return;
+
                   if (projectResponsibility.trim() !== "") {
-                    setProjectResponsibilities([...projectResponsibilities, projectResponsibility]);
+                    isAddingProjectResponsibility.current = true;
+
+                    const trimmedResponsibility = projectResponsibility.trim();
+
+                    // Update state
+                    setProjectResponsibilities([...projectResponsibilities, trimmedResponsibility]);
+
+                    // Reset input
                     setProjectResponsibility("");
+
+                    // Reset flag after a short delay
+                    setTimeout(() => {
+                      isAddingProjectResponsibility.current = false;
+                    }, 100);
                   }
                 }}
               >
@@ -902,9 +1235,24 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
               <button
                 className="btn btn-neutral join-item"
                 onClick={() => {
+                  // Prevent multiple clicks
+                  if (isAddingProjectTechStack.current) return;
+
                   if (projectTechStack.trim() !== "") {
-                    setProjectTechStacks([...projectTechStacks, projectTechStack]);
+                    isAddingProjectTechStack.current = true;
+
+                    const trimmedTechStack = projectTechStack.trim();
+
+                    // Update state
+                    setProjectTechStacks([...projectTechStacks, trimmedTechStack]);
+
+                    // Reset input
                     setProjectTechStack("");
+
+                    // Reset flag after a short delay
+                    setTimeout(() => {
+                      isAddingProjectTechStack.current = false;
+                    }, 100);
                   }
                 }}
               >
@@ -932,46 +1280,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
             <button
               className="btn btn-primary w-full mt-4"
-              onClick={() => {
-                if (projectName.trim() !== "" && projectRole.trim() !== "" && projectFromDate && projectType.trim() !== "") {
-                  const position: CVPosition = {
-                    role: projectRole,
-                    fromDate: new Date(projectFromDate),
-                    description: projectDescription,
-                    responsibilities: [...projectResponsibilities]
-                  };
-
-                  if (!isCurrentProject && projectToDate) {
-                    position.toDate = new Date(projectToDate);
-                  }
-
-                  setPersonalCV((p) => {
-                    if (!p.projects) {
-                      p.projects = [];
-                    }
-                    p.projects = [...p.projects, {
-                      projectName,
-                      positions: [position],
-                      techStack: [...projectTechStacks],
-                      type: projectType
-                    }];
-                    return Object.assign({}, p);
-                  });
-
-                  // Reset form
-                  setProjectName("");
-                  setProjectRole("");
-                  setProjectFromDate("");
-                  setProjectToDate("");
-                  setIsCurrentProject(false);
-                  setProjectDescription("");
-                  setProjectResponsibility("");
-                  setProjectResponsibilities([]);
-                  setProjectTechStack("");
-                  setProjectTechStacks([]);
-                  setProjectType("");
-                }
-              }}
+              onClick={handleAddProject}
             >
               Add Project
             </button>
@@ -1148,9 +1457,24 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
               <button
                 className="btn btn-neutral join-item"
                 onClick={() => {
+                  // Prevent multiple clicks
+                  if (isAddingEducationNote.current) return;
+
                   if (educationNote.trim() !== "") {
-                    setEducationNotes([...educationNotes, educationNote]);
+                    isAddingEducationNote.current = true;
+
+                    const trimmedNote = educationNote.trim();
+
+                    // Update state
+                    setEducationNotes([...educationNotes, trimmedNote]);
+
+                    // Reset input
                     setEducationNote("");
+
+                    // Reset flag after a short delay
+                    setTimeout(() => {
+                      isAddingEducationNote.current = false;
+                    }, 100);
                   }
                 }}
               >
@@ -1180,48 +1504,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
             <button
               className="btn btn-primary w-full mt-4"
-              onClick={() => {
-                if (schoolName.trim() !== "" && schoolLocation.trim() !== "" && degree.trim() !== "" && entranceYear) {
-                  const education: CVEducation = {
-                    schoolName,
-                    schoolLocation,
-                    degree,
-                    entranceYear: new Date(entranceYear),
-                    currentStatus: schoolStatus
-                  };
-
-                  if (schoolStatus !== SchoolStatus.CONTINUING && completionYear) {
-                    education.completionYear = new Date(completionYear);
-                  }
-
-                  if (graduationScore !== undefined) {
-                    education.graduationScore = graduationScore;
-                  }
-
-                  if (educationNotes.length > 0) {
-                    education.notes = [...educationNotes];
-                  }
-
-                  setPersonalCV((p) => {
-                    if (!p.educations) {
-                      p.educations = [];
-                    }
-                    p.educations = [...p.educations, education];
-                    return Object.assign({}, p);
-                  });
-
-                  // Reset form
-                  setSchoolName("");
-                  setSchoolLocation("");
-                  setDegree("");
-                  setEntranceYear("");
-                  setCompletionYear("");
-                  setSchoolStatus(SchoolStatus.COMPLETED);
-                  setGraduationScore(undefined);
-                  setEducationNote("");
-                  setEducationNotes([]);
-                }
-              }}
+              onClick={handleAddEducation}
             >
               Add Education
             </button>
@@ -1349,39 +1632,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
             <button
               className="btn btn-primary w-full mt-4"
-              onClick={() => {
-                if (certificateName.trim() !== "" && issuingOrganization.trim() !== "" && acquiredDate) {
-                  const certificate: CVCertificate = {
-                    name: certificateName,
-                    issuingOrganization,
-                    acquiredWhen: new Date(acquiredDate)
-                  };
-
-                  if (hasExpiry && expiryDate) {
-                    certificate.endsWhen = new Date(expiryDate);
-                  }
-
-                  if (verificationId.trim() !== "") {
-                    certificate.verificationId = verificationId;
-                  }
-
-                  setPersonalCV((p) => {
-                    if (!p.certificates) {
-                      p.certificates = [];
-                    }
-                    p.certificates = [...p.certificates, certificate];
-                    return Object.assign({}, p);
-                  });
-
-                  // Reset form
-                  setCertificateName("");
-                  setIssuingOrganization("");
-                  setAcquiredDate("");
-                  setExpiryDate("");
-                  setHasExpiry(false);
-                  setVerificationId("");
-                }
-              }}
+              onClick={handleAddCertificate}
             >
               Add Certificate
             </button>
@@ -1460,26 +1711,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
             <button
               className="btn btn-primary w-full"
-              onClick={() => {
-                if (language.trim() !== "") {
-                  const lang: CVLanguage = {
-                    language,
-                    proficiency
-                  };
-
-                  setPersonalCV((p) => {
-                    if (!p.languages) {
-                      p.languages = [];
-                    }
-                    p.languages = [...p.languages, lang];
-                    return Object.assign({}, p);
-                  });
-
-                  // Reset form
-                  setLanguage("");
-                  setProficiency(LanguageProficiency.B2);
-                }
-              }}
+              onClick={handleAddLanguage}
             >
               Add Language
             </button>
