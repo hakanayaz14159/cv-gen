@@ -14,7 +14,7 @@ export function validateEmail(email: string): { isValid: boolean; message?: stri
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isValid = emailRegex.test(email);
-  
+
   return {
     isValid,
     message: isValid ? undefined : 'Please enter a valid email address'
@@ -33,11 +33,11 @@ export function validatePhoneNumber(phoneNumber: string): { isValid: boolean; me
 
   // Remove all non-digit characters except +
   const digitsOnly = phoneNumber.replace(/[^\d+]/g, '');
-  
+
   // Check if it has at least a country code (+ and 1-3 digits) and at least 5 more digits
   // This is a very basic validation that should work for most international numbers
   const isValid = /^\+\d{1,3}\d{5,}$/.test(digitsOnly);
-  
+
   return {
     isValid,
     message: isValid ? undefined : 'Please enter a valid phone number with country code'
@@ -58,7 +58,7 @@ export function validateUrl(url: string): { isValid: boolean; message?: string }
     // Try to create a URL object - this will throw if invalid
     new URL(url);
     return { isValid: true };
-  } catch (e) {
+  } catch (_e) {
     return {
       isValid: false,
       message: 'Please enter a valid URL (e.g., https://example.com)'
@@ -102,8 +102,8 @@ export function validateDateRange(
   }
 
   // Check if end date is after start date
-  const isValid = allowEqual 
-    ? start.getTime() <= end.getTime() 
+  const isValid = allowEqual
+    ? start.getTime() <= end.getTime()
     : start.getTime() < end.getTime();
 
   return {
@@ -131,21 +131,21 @@ export function validateText(
   }
 
   const trimmedText = text?.trim() || '';
-  
+
   if (trimmedText.length < minLength) {
     return {
       isValid: false,
       message: `${fieldName} must be at least ${minLength} characters`
     };
   }
-  
+
   if (trimmedText.length > maxLength) {
     return {
       isValid: false,
       message: `${fieldName} must be no more than ${maxLength} characters`
     };
   }
-  
+
   return { isValid: true };
 }
 
@@ -167,27 +167,27 @@ export function validateNumber(
   if (value === undefined) {
     return { isValid: true };
   }
-  
+
   if (isNaN(value)) {
     return {
       isValid: false,
       message: `${fieldName} must be a valid number`
     };
   }
-  
+
   if (value < min) {
     return {
       isValid: false,
       message: `${fieldName} must be at least ${min}`
     };
   }
-  
+
   if (value > max) {
     return {
       isValid: false,
       message: `${fieldName} must be no more than ${max}`
     };
   }
-  
+
   return { isValid: true };
 }
