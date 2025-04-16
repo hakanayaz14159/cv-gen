@@ -28,7 +28,7 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
         setPhoneNumber(phoneStr);
       }
     }
-  }, []);
+  }, [personalCV.contactInformations?.phoneNumber]);
 
   return (
     <fieldset className="fieldset grid grid-cols-2 col-span-2 p-4">

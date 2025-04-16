@@ -18,15 +18,11 @@ const ProjectsSection = ({ personalCV, setPersonalCV }: Props) => {
   const [projectToDate, setProjectToDate] = useState("");
   const [isCurrentProject, setIsCurrentProject] = useState(false);
   const [projectDescription, setProjectDescription] = useState("");
-  const [projectResponsibility, setProjectResponsibility] = useState("");
   const [projectResponsibilities, setProjectResponsibilities] = useState<string[]>([]);
-  const [projectTechStack, setProjectTechStack] = useState("");
   const [projectTechStacks, setProjectTechStacks] = useState<string[]>([]);
   const [projectType, setProjectType] = useState("");
 
   // Refs to prevent double submissions
-  const isAddingProjectResponsibility = useRef(false);
-  const isAddingProjectTechStack = useRef(false);
   const isAddingProject = useRef(false);
 
   // Function to handle adding project responsibility
@@ -77,9 +73,7 @@ const ProjectsSection = ({ personalCV, setPersonalCV }: Props) => {
     setProjectToDate("");
     setIsCurrentProject(false);
     setProjectDescription("");
-    setProjectResponsibility("");
     setProjectResponsibilities([]);
-    setProjectTechStack("");
     setProjectTechStacks([]);
     setProjectType("");
 
@@ -267,7 +261,7 @@ const ProjectsSection = ({ personalCV, setPersonalCV }: Props) => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {pos.description && (
                         <div className="mt-2 text-sm">
                           <p>{pos.description}</p>

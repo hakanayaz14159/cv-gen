@@ -79,7 +79,7 @@ const DownloadButton = ({ cvData, config }: Props) => {
         </button>
 
         <p className="text-sm mt-4 opacity-70 max-w-md text-center">
-          The PDF will be generated based on the information you've provided and the current configuration settings.
+          The PDF will be generated based on the information you&apos;ve provided and the current configuration settings.
         </p>
       </div>
     </fieldset>

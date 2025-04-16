@@ -11,7 +11,7 @@ type Props = {
 const AboutSection = ({ personalCV, setPersonalCV }: Props) => {
   // About state
   const [aboutText, setAboutText] = useState("");
-  
+
   // Debounce timer ref
   const aboutDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -20,7 +20,7 @@ const AboutSection = ({ personalCV, setPersonalCV }: Props) => {
     if (personalCV.about) {
       setAboutText(personalCV.about);
     }
-  }, []);
+  }, [personalCV.about]);
 
   return (
     <fieldset className="fieldset col-span-3 p-4">

@@ -20,11 +20,9 @@ const EducationSection = ({ personalCV, setPersonalCV }: Props) => {
   const [completionYear, setCompletionYear] = useState("");
   const [schoolStatus, setSchoolStatus] = useState<SchoolStatus>(SchoolStatus.COMPLETED);
   const [graduationScore, setGraduationScore] = useState<number | undefined>();
-  const [educationNote, setEducationNote] = useState("");
   const [educationNotes, setEducationNotes] = useState<string[]>([]);
 
   // Refs to prevent double submissions
-  const isAddingEducationNote = useRef(false);
   const isAddingEducation = useRef(false);
 
   // Function to handle adding education note

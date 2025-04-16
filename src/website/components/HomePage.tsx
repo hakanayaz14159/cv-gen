@@ -36,7 +36,7 @@ const HomePage = () => {
         <div className="card bg-base-200 shadow-xl hover:shadow-2xl transition-all">
           <div className="card-body">
             <h3 className="card-title text-primary">Privacy First</h3>
-            <p>Your data never leaves your browser. We don't store your personal information on any servers.</p>
+            <p>Your data never leaves your browser. We don&apos;t store your personal information on any servers.</p>
           </div>
         </div>
       </div>

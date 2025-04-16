@@ -37,7 +37,7 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
       const groups = [...new Set(personalCV.skills.map((skill: ExtendedCVSkill) => skill.group))];
       setSkillGroups(groups as string[]);
     }
-  }, []);
+  }, [personalCV.skills]);
 
   const handleAddSkillGroup = (newGroup: string) => {
     if (skillGroups.includes(newGroup)) return;

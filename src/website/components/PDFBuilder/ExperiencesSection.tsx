@@ -18,14 +18,10 @@ const ExperiencesSection = ({ personalCV, setPersonalCV }: Props) => {
   const [toDate, setToDate] = useState("");
   const [isCurrentPosition, setIsCurrentPosition] = useState(false);
   const [description, setDescription] = useState("");
-  const [responsibility, setResponsibility] = useState("");
   const [responsibilities, setResponsibilities] = useState<string[]>([]);
-  const [techStack, setTechStack] = useState("");
   const [techStacks, setTechStacks] = useState<string[]>([]);
 
   // Refs to prevent double submissions
-  const isAddingResponsibility = useRef(false);
-  const isAddingTechStack = useRef(false);
   const isAddingExperience = useRef(false);
 
   // Function to handle adding responsibility
@@ -253,7 +249,7 @@ const ExperiencesSection = ({ personalCV, setPersonalCV }: Props) => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {pos.description && (
                         <div className="mt-2 text-sm">
                           <p>{pos.description}</p>

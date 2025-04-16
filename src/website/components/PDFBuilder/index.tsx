@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CVInformations, CVGeneratorConfig } from "../../../lib/types";
+import { CVInformations, CVGeneratorConfig, CVSkill } from "../../../lib/types";
 
 // Extended CVInformations type with skills array for UI purposes
 interface ExtendedCVInformations extends Partial<CVInformations> {
-  skills?: any[];
+  skills?: (Partial<CVSkill> & { group?: string })[];
 }
 import PersonalDetailsSection from "./PersonalDetailsSection";
 import ContactInfoSection from "./ContactInfoSection";

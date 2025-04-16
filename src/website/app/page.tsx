@@ -2,7 +2,12 @@
 import PDFViewer from "../components/PDFViewer";
 import { softwareEngineerCV as dummyCV } from "../helper/dummyCV";
 import { useCallback, useState, useEffect } from "react";
-import { CVGeneratorConfig, CVInformations } from "../../lib/types";
+import { CVGeneratorConfig, CVInformations, CVSkill } from "../../lib/types";
+
+// Extended CVInformations type with skills array for UI purposes
+interface ExtendedCVInformations extends Partial<CVInformations> {
+  skills?: (Partial<CVSkill> & { group?: string })[];
+}
 import PDFBuilder from "../components/PDFBuilder";
 import TabContainer from "../components/TabContainer";
 import HomePage from "../components/HomePage";
@@ -13,7 +18,7 @@ export default function Page() {
   // Initialize state
   const [mergedCV, setMergedCV] = useState<CVInformations | null>(null);
   const [config, setConfig] = useState<Partial<CVGeneratorConfig>>({});
-  const [personalCV, setPersonalCV] = useState<Partial<CVInformations>>({});
+  const [personalCV, setPersonalCV] = useState<ExtendedCVInformations>({});
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // Load saved data from localStorage on component mount
@@ -25,29 +30,30 @@ export default function Page() {
       console.log('Loaded user data from localStorage:', savedUserData);
       if (savedUserData) {
         // Process the saved user data to ensure it's in the correct format
-        const processedData = { ...savedUserData };
+        const processedData = { ...savedUserData } as ExtendedCVInformations;
 
         // If there are skills in the saved data, make sure they're properly processed
         if (processedData.skills && Array.isArray(processedData.skills)) {
           console.log('Processing skills array from localStorage');
           // Group skills by their group property
-          const skillsByGroup: Record<string, any[]> = {};
+          const skillsByGroup: Record<string, Partial<CVSkill>[]> = {};
 
-          processedData.skills.forEach((skill: any) => {
+          processedData.skills.forEach((skill: { group?: string } & Partial<CVSkill>) => {
             if (skill.group) {
               if (!skillsByGroup[skill.group]) {
                 skillsByGroup[skill.group] = [];
               }
 
               // Create a clean skill object without the group property
-              const { group, ...cleanSkill } = skill;
+              const cleanSkill = { ...skill };
+              delete cleanSkill.group;
               skillsByGroup[skill.group].push(cleanSkill);
             }
           });
 
           // Set the skillDetails property
           if (Object.keys(skillsByGroup).length > 0) {
-            processedData.skillDetails = skillsByGroup;
+            processedData.skillDetails = skillsByGroup as unknown as Record<string, CVSkill[]>;
             console.log('Created skillDetails from skills array:', skillsByGroup);
           }
         }
@@ -92,7 +98,7 @@ export default function Page() {
   }, [config, isDataLoaded]);
 
   const onCVChange = useCallback(
-    (newPersonalCV: Partial<CVInformations>) => {
+    (newPersonalCV: ExtendedCVInformations) => {
       // Prevent processing empty data
       if (Object.keys(newPersonalCV).length === 0) {
         console.log('onCVChange: Received empty CV data, ignoring');
@@ -105,28 +111,29 @@ export default function Page() {
       setPersonalCV(newPersonalCV);
 
       // Transform skills array to skillDetails record if needed
-      const transformedCV = { ...newPersonalCV };
+      const transformedCV = { ...newPersonalCV } as ExtendedCVInformations;
 
       if (transformedCV.skills && Array.isArray(transformedCV.skills)) {
         console.log('Processing skills array in onCVChange:', transformedCV.skills);
         // Group skills by their group property
-        const skillsByGroup: Record<string, any[]> = {};
+        const skillsByGroup: Record<string, Partial<CVSkill>[]> = {};
 
-        transformedCV.skills.forEach(skill => {
+        transformedCV.skills.forEach((skill: { group?: string } & Partial<CVSkill>) => {
           if (skill.group) {
             if (!skillsByGroup[skill.group]) {
               skillsByGroup[skill.group] = [];
             }
 
             // Create a clean skill object without the group property
-            const { group, ...cleanSkill } = skill;
+            const cleanSkill = { ...skill };
+            delete cleanSkill.group;
             skillsByGroup[skill.group].push(cleanSkill);
           }
         });
 
         // Set the skillDetails property
         if (Object.keys(skillsByGroup).length > 0) {
-          transformedCV.skillDetails = skillsByGroup;
+          transformedCV.skillDetails = skillsByGroup as unknown as Record<string, CVSkill[]>;
           console.log('Created skillDetails in onCVChange:', skillsByGroup);
         }
       }
