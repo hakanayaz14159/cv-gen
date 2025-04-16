@@ -63,7 +63,6 @@ const EducationSection = ({ personalCV, setPersonalCV }: Props) => {
     setCompletionYear("");
     setSchoolStatus(SchoolStatus.COMPLETED);
     setGraduationScore(undefined);
-    setEducationNote("");
     setEducationNotes([]);
 
     // Create education object
