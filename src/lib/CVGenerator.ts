@@ -81,7 +81,7 @@ export class CVGenerator implements CVGeneratorInterface {
     this.fontTracker.push({ url, id, style });
   }
 
-  ensurePageSize(checkSize: number = 1) {
+  ensurePageSize(checkSize = 1) {
     const maxHeight =
       this.doc.internal.pageSize.getHeight() - this.config.marginY;
 
@@ -559,8 +559,7 @@ export class CVGenerator implements CVGeneratorInterface {
       const spacing = 3;
       if (responsibilities !== undefined && responsibilities.length > 0) {
         this.posTracker.y += this.config.lineSpacing * 0.2;
-        for (let i = 0; i < responsibilities.length; i++) {
-          const responsibility = responsibilities[i];
+        for (const responsibility of responsibilities) {
           const responsibilityText = `- ${responsibility}`;
           const respDim = this.doc.getTextDimensions(responsibilityText, {
             maxWidth: maxWidth - spacing,
@@ -791,8 +790,7 @@ export class CVGenerator implements CVGeneratorInterface {
       const spacing = 3;
       if (responsibilities !== undefined && responsibilities.length > 0) {
         this.posTracker.y += this.config.lineSpacing * 0.2;
-        for (let i = 0; i < responsibilities.length; i++) {
-          const responsibility = responsibilities[i];
+        for (const responsibility of responsibilities) {
           const responsibilityText = `- ${responsibility}`;
           const respDim = this.doc.getTextDimensions(responsibilityText, {
             maxWidth: maxWidth - spacing,

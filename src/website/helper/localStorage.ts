@@ -99,12 +99,8 @@ export const saveUserData = (data: Partial<CVInformations>): boolean => {
     }
 
     const serializedData = JSON.stringify(dataCopy);
-    console.log('Serialized data to save:', serializedData.substring(0, 100) + '...');
-    localStorage.setItem(CV_DATA_KEY, serializedData);
 
-    // Verify the data was saved correctly
-    const savedData = localStorage.getItem(CV_DATA_KEY);
-    console.log('Verification - data in localStorage:', savedData ? savedData.substring(0, 100) + '...' : 'null');
+    localStorage.setItem(CV_DATA_KEY, serializedData);
 
     return true;
   } catch (error) {
@@ -127,12 +123,11 @@ export const loadUserData = (): Partial<CVInformations> | null => {
     }
 
     const serializedData = localStorage.getItem(CV_DATA_KEY);
-    console.log('Raw localStorage data:', serializedData ? serializedData.substring(0, 100) + '...' : 'null');
+
     if (!serializedData) return null;
 
     // Parse the data and convert date strings back to Date objects
     const data = JSON.parse(serializedData);
-    console.log('Parsed data keys:', Object.keys(data));
 
     // Process experiences
     if (data.experiences) {
@@ -190,7 +185,6 @@ export const loadUserData = (): Partial<CVInformations> | null => {
       });
     }
 
-    console.log('Processed data ready to return:', data);
     return data;
   } catch (error) {
     console.error('Error loading user data from localStorage:', error);
@@ -216,12 +210,8 @@ export const saveConfig = (config: CVGeneratorConfig): boolean => {
     const configCopy = JSON.parse(JSON.stringify(config));
 
     const serializedConfig = JSON.stringify(configCopy);
-    console.log('Saving config to localStorage:', serializedConfig);
-    localStorage.setItem(CONFIG_KEY, serializedConfig);
 
-    // Verify the config was saved correctly
-    const savedConfig = localStorage.getItem(CONFIG_KEY);
-    console.log('Verification - config in localStorage:', savedConfig);
+    localStorage.setItem(CONFIG_KEY, serializedConfig);
 
     return true;
   } catch (error) {
@@ -244,11 +234,11 @@ export const loadConfig = (): CVGeneratorConfig | null => {
     }
 
     const serializedConfig = localStorage.getItem(CONFIG_KEY);
-    console.log('Raw config from localStorage:', serializedConfig);
+
     if (!serializedConfig) return null;
 
     const config = JSON.parse(serializedConfig);
-    console.log('Parsed config:', config);
+
     return config;
   } catch (error) {
     console.error('Error loading configuration from localStorage:', error);
@@ -308,13 +298,10 @@ export const exportData = (): void => {
  */
 export const importData = (jsonData: string): boolean => {
   try {
-    console.log('Importing data, raw JSON:', jsonData.substring(0, 100) + '...');
+
     const data = JSON.parse(jsonData);
-    console.log('Parsed import data structure:', Object.keys(data));
 
     if (data.userData) {
-      console.log('userData found, keys:', Object.keys(data.userData));
-
       // Process the userData to ensure dates are properly formatted
       const processedData = { ...data.userData };
 
@@ -360,16 +347,14 @@ export const importData = (jsonData: string): boolean => {
 
       // Save the processed data
       localStorage.setItem(CV_DATA_KEY, JSON.stringify(processedData));
-      console.log('Saved processed userData to localStorage');
     } else {
-      console.log('No userData found in import data');
+      // No user data found
     }
 
     if (data.config) {
-      console.log('config found, keys:', Object.keys(data.config));
       localStorage.setItem(CONFIG_KEY, JSON.stringify(data.config));
     } else {
-      console.log('No config found in import data');
+      // No config found
     }
 
     return true;

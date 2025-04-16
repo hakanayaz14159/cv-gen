@@ -18,7 +18,6 @@ const ConfigPage = ({ onConfigChange }: Props = {}) => {
         const savedConfig = localStorage.getItem('cv-gen-config');
         if (savedConfig) {
           const parsedConfig = JSON.parse(savedConfig);
-          console.log('ConfigPage: Initializing with saved config:', parsedConfig);
           return parsedConfig;
         }
       } catch (error) {
@@ -84,7 +83,6 @@ const ConfigPage = ({ onConfigChange }: Props = {}) => {
   useEffect(() => {
     // Only update the parent if we've already initialized or have non-default config
     if (onConfigChange && (isInitialized || Object.keys(config).length > 0)) {
-      console.log('ConfigPage: Calling onConfigChange with:', config);
       onConfigChange(config);
       setIsInitialized(true);
     }

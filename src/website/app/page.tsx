@@ -3,11 +3,7 @@ import PDFViewer from "../components/PDFViewer";
 import { softwareEngineerCV as dummyCV } from "../helper/dummyCV";
 import { useCallback, useState, useEffect } from "react";
 import { CVGeneratorConfig, CVInformations, CVSkill } from "../../lib/types";
-
-// Extended CVInformations type with skills array for UI purposes
-interface ExtendedCVInformations extends Partial<CVInformations> {
-  skills?: (Partial<CVSkill> & { group?: string })[];
-}
+import { ExtendedCVInformations } from "../types";
 import PDFBuilder from "../components/PDFBuilder";
 import TabContainer from "../components/TabContainer";
 import HomePage from "../components/HomePage";
@@ -27,14 +23,12 @@ export default function Page() {
     if (typeof window !== 'undefined') {
       // Load user data
       const savedUserData = loadUserData();
-      console.log('Loaded user data from localStorage:', savedUserData);
       if (savedUserData) {
         // Process the saved user data to ensure it's in the correct format
         const processedData = { ...savedUserData } as ExtendedCVInformations;
 
         // If there are skills in the saved data, make sure they're properly processed
         if (processedData.skills && Array.isArray(processedData.skills)) {
-          console.log('Processing skills array from localStorage');
           // Group skills by their group property
           const skillsByGroup: Record<string, Partial<CVSkill>[]> = {};
 
@@ -54,17 +48,14 @@ export default function Page() {
           // Set the skillDetails property
           if (Object.keys(skillsByGroup).length > 0) {
             processedData.skillDetails = skillsByGroup as unknown as Record<string, CVSkill[]>;
-            console.log('Created skillDetails from skills array:', skillsByGroup);
           }
         }
 
         setPersonalCV(processedData);
         // Merge with dummy data
         const merged = Object.assign({}, dummyCV, processedData);
-        console.log('Merged CV data:', merged);
         setMergedCV(merged);
       } else {
-        console.log('No saved user data found, using dummy data');
         // Set mergedCV to dummy data if no saved data is found
         setMergedCV(dummyCV);
       }
@@ -83,9 +74,7 @@ export default function Page() {
   useEffect(() => {
     // Only save after initial data is loaded to prevent overwriting with empty data
     if (isDataLoaded && Object.keys(personalCV).length > 0) {
-      console.log('Saving user data to localStorage:', personalCV);
-      const success = saveUserData(personalCV);
-      console.log('Save success:', success);
+      saveUserData(personalCV);
     }
   }, [personalCV, isDataLoaded]);
 
@@ -101,11 +90,8 @@ export default function Page() {
     (newPersonalCV: ExtendedCVInformations) => {
       // Prevent processing empty data
       if (Object.keys(newPersonalCV).length === 0) {
-        console.log('onCVChange: Received empty CV data, ignoring');
         return;
       }
-
-      console.log('onCVChange: Processing CV data:', newPersonalCV);
 
       // Update personal CV state
       setPersonalCV(newPersonalCV);
@@ -114,7 +100,6 @@ export default function Page() {
       const transformedCV = { ...newPersonalCV } as ExtendedCVInformations;
 
       if (transformedCV.skills && Array.isArray(transformedCV.skills)) {
-        console.log('Processing skills array in onCVChange:', transformedCV.skills);
         // Group skills by their group property
         const skillsByGroup: Record<string, Partial<CVSkill>[]> = {};
 
@@ -134,20 +119,17 @@ export default function Page() {
         // Set the skillDetails property
         if (Object.keys(skillsByGroup).length > 0) {
           transformedCV.skillDetails = skillsByGroup as unknown as Record<string, CVSkill[]>;
-          console.log('Created skillDetails in onCVChange:', skillsByGroup);
         }
       }
 
       // Save the transformed CV to localStorage
-      console.log('Saving transformed CV to localStorage:', transformedCV);
-      const saveSuccess = saveUserData(transformedCV);
-      console.log('Save success:', saveSuccess);
+      saveUserData(transformedCV);
 
       // Merge transformed CV with dummy CV
       // Create a deep copy of the dummy CV to avoid reference issues
       const dummyCopy = JSON.parse(JSON.stringify(dummyCV));
       const merged = Object.assign({}, dummyCopy, transformedCV);
-      console.log('Merged CV in onCVChange:', merged);
+
       setMergedCV(merged);
     },
     [],
@@ -157,17 +139,14 @@ export default function Page() {
     (newConfig: CVGeneratorConfig) => {
       // Prevent processing empty config
       if (!newConfig || Object.keys(newConfig).length === 0) {
-        console.log('onConfigChange: Received empty config, ignoring');
         return;
       }
 
-      console.log('Config changed:', newConfig);
       setConfig(newConfig);
 
       // Explicitly save the config to localStorage
       if (isDataLoaded) {
-        const success = saveConfig(newConfig);
-        console.log('Config save success:', success);
+        saveConfig(newConfig);
       }
     },
     [isDataLoaded],

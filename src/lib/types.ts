@@ -1,50 +1,50 @@
 import type { jsPDF } from "jspdf";
 import { CVSection, LanguageProficiency, SchoolStatus } from "./enum";
 
-export type ContactDetails = {
+export interface ContactDetails {
   email?: string;
   phoneNumber?: string;
   webpage?: string;
   github?: string;
   linkedIn?: string;
-};
+}
 
-export type CVSkill = {
+export interface CVSkill {
   name: string;
   experience?: number;
   featured?: boolean;
-};
+}
 
-export type CVCertificate = {
+export interface CVCertificate {
   name: string;
   issuingOrganization: string;
   acquiredWhen: Date;
   endsWhen?: Date;
   verificationId?: string;
-};
+}
 
-export type CVPosition = {
+export interface CVPosition {
   role: string;
   fromDate: Date;
   toDate?: Date;
   description?: string;
   responsibilities?: string[];
-};
+}
 
-export type CVExperience = {
+export interface CVExperience {
   companyName: string;
   positions: CVPosition[];
   techStack?: string[];
-};
+}
 
-export type CVProject = {
+export interface CVProject {
   projectName: string;
   positions: CVPosition[];
   techStack?: string[];
   type: string;
-};
+}
 
-export type CVEducation = {
+export interface CVEducation {
   schoolName: string;
   schoolLocation: string;
   degree: string;
@@ -53,14 +53,14 @@ export type CVEducation = {
   currentStatus: SchoolStatus;
   graduationScore?: number;
   notes?: string[];
-};
+}
 
-export type CVLanguage = {
+export interface CVLanguage {
   language: string;
   proficiency: LanguageProficiency;
-};
+}
 
-export type CVGeneratorConfig = {
+export interface CVGeneratorConfig {
   layout?: CVSection[];
   marginX?: number;
   marginY?: number;
@@ -70,9 +70,9 @@ export type CVGeneratorConfig = {
   contactOrientation?: "horizontal" | "vertical";
   languageGrader?: "common" | "cefr";
   titleLocation?: "left" | "center" | "right";
-};
+}
 
-export type CVInformations = {
+export interface CVInformations {
   name: string;
   personalTitle: string;
   contactInformations: ContactDetails;
@@ -83,7 +83,7 @@ export type CVInformations = {
   educations?: CVEducation[];
   certificates?: CVCertificate[];
   languages?: CVLanguage[];
-};
+}
 
 export interface Position {
   x: number;

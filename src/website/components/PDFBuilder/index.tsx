@@ -1,12 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CVInformations, CVGeneratorConfig, CVSkill } from "../../../lib/types";
-
-// Extended CVInformations type with skills array for UI purposes
-interface ExtendedCVInformations extends Partial<CVInformations> {
-  skills?: (Partial<CVSkill> & { group?: string })[];
-}
+import { CVInformations, CVGeneratorConfig } from "../../../lib/types";
+import { ExtendedCVInformations } from "../../types";
 import PersonalDetailsSection from "./PersonalDetailsSection";
 import ContactInfoSection from "./ContactInfoSection";
 import AboutSection from "./AboutSection";
@@ -18,7 +14,7 @@ import CertificatesSection from "./CertificatesSection";
 import LanguagesSection from "./LanguagesSection";
 import DownloadButton from "./DownloadButton";
 
-type Props = {
+interface Props {
   changeCB: (update: Partial<CVInformations>) => void;
   config?: Partial<CVGeneratorConfig>;
 };
@@ -30,8 +26,7 @@ const PDFBuilder = ({ changeCB, config }: Props) => {
       try {
         const savedData = localStorage.getItem('cv-gen-user-data');
         if (savedData) {
-          const parsedData = JSON.parse(savedData);
-          console.log('PDFBuilder: Initializing with saved data:', parsedData);
+          const parsedData = JSON.parse(savedData) as ExtendedCVInformations;
           return parsedData;
         }
       } catch (error) {
@@ -50,7 +45,6 @@ const PDFBuilder = ({ changeCB, config }: Props) => {
     // Only update the parent if we have data or we've already initialized
     // This prevents overwriting localStorage with empty data on initial render
     if (Object.keys(personalCV).length > 0 || isInitialized) {
-      console.log('PDFBuilder: Updating parent with CV data:', personalCV);
       changeCB(personalCV);
       setIsInitialized(true);
     }

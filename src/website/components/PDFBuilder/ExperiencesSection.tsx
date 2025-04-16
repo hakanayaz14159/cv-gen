@@ -5,7 +5,7 @@ import { CVInformations, CVExperience, CVPosition } from "../../../lib/types";
 import AddItemInput from "./shared/AddItemInput";
 import ItemsList from "./shared/ItemsList";
 
-type Props = {
+interface Props {
   personalCV: Partial<CVInformations>;
   setPersonalCV: Dispatch<SetStateAction<Partial<CVInformations>>>;
 };
@@ -71,9 +71,7 @@ const ExperiencesSection = ({ personalCV, setPersonalCV }: Props) => {
     setToDate("");
     setIsCurrentPosition(false);
     setDescription("");
-    setResponsibility("");
     setResponsibilities([]);
-    setTechStack("");
     setTechStacks([]);
 
     // Create position object

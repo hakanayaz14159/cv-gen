@@ -32,7 +32,6 @@ const PDFViewer = ({ cvData, configOverride }: Props) => {
     if (!cvData) return;
 
     try {
-      console.log('Generating PDF with data:', cvData);
       // Generate the PDF
       const newPdfSrc = generatorRef.current.generateCV(cvData, configOverride).output("datauristring", { filename: "CV.pdf" });
 

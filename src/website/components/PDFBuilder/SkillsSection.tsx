@@ -1,21 +1,12 @@
 "use client";
 
 import { Dispatch, SetStateAction, useState, useRef, useEffect } from "react";
-import { CVInformations, CVSkill } from "../../../lib/types";
+
+import { ExtendedCVInformations, ExtendedCVSkill } from "../../types";
 import AddItemInput from "./shared/AddItemInput";
 import ItemsList from "./shared/ItemsList";
 
-// Extended CVSkill type with group property for UI purposes
-interface ExtendedCVSkill extends CVSkill {
-  group: string;
-}
-
-// Extended CVInformations type with skills array for UI purposes
-interface ExtendedCVInformations extends Partial<CVInformations> {
-  skills?: ExtendedCVSkill[];
-}
-
-type Props = {
+interface Props {
   personalCV: ExtendedCVInformations;
   setPersonalCV: Dispatch<SetStateAction<ExtendedCVInformations>>;
 };
@@ -35,7 +26,7 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
   useEffect(() => {
     if (personalCV.skills) {
       const groups = [...new Set(personalCV.skills.map((skill: ExtendedCVSkill) => skill.group))];
-      setSkillGroups(groups as string[]);
+      setSkillGroups(groups);
     }
   }, [personalCV.skills]);
 
