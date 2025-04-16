@@ -39,6 +39,9 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
   const isAddingCertificate = useRef(false);
   const isAddingLanguage = useRef(false);
 
+  // Debounce timer refs
+  const aboutDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Experience state
   const [companyName, setCompanyName] = useState("");
   const [role, setRole] = useState("");
@@ -346,6 +349,9 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
   const [language, setLanguage] = useState("");
   const [proficiency, setProficiency] = useState<LanguageProficiency>(LanguageProficiency.B2);
 
+  // About state
+  const [aboutText, setAboutText] = useState("");
+
   // Function to handle adding language - defined outside the click handler
   const handleAddLanguage = () => {
     if (isAddingLanguage.current || !language.trim()) {
@@ -394,10 +400,17 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
     onConfigChange(configOverride);
   }, [configOverride]);
 
+  // Initialize aboutText with existing about value if it exists
+  useEffect(() => {
+    if (personalCV.about) {
+      setAboutText(personalCV.about);
+    }
+  }, []);
+
   return (
     <div className="grid grid-cols-3 gap-2">
-      <fieldset className="fieldset bg-base-100 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset p-4">
+        <legend className="fieldset-legend">
           Personal Details
         </legend>
         <label className="fieldset-label">Full Name</label>
@@ -457,8 +470,8 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
           <option value={"center"}>Center</option>
         </select>
       </fieldset>
-      <fieldset className="fieldset grid grid-cols-2 col-span-2 bg-base-100 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset grid grid-cols-2 col-span-2 p-4">
+        <legend className="fieldset-legend">
           Contact Informations
         </legend>
         <label className="fieldset-label">Email</label>
@@ -622,127 +635,159 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
           }}
         />
       </fieldset>
-      <fieldset className="fieldset grid col-span-3 bg-base-100 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset grid col-span-3 p-4">
+        <legend className="fieldset-legend">
           About
         </legend>
         <label className="fieldset-label">Summary</label>
         <textarea
           className="textarea h-24 resize-none w-full"
           placeholder="What you can tell about yourself ? Make it short"
+          value={aboutText}
           onChange={(e) => {
-            setPersonalCV((p) => {
-              if (e.target.value.trim().length > 0) {
-                p.about = e.target.value.trim();
-              } else {
-                delete p.about;
-              }
+            const value = e.target.value;
 
-              return Object.assign({}, p);
-            });
+            // Update local state immediately for responsive UI
+            setAboutText(value);
+
+            // Clear any existing timeout
+            if (aboutDebounceTimerRef.current) {
+              clearTimeout(aboutDebounceTimerRef.current);
+            }
+
+            // Set a new timeout to update the CV state after typing stops
+            aboutDebounceTimerRef.current = setTimeout(() => {
+              setPersonalCV((p) => {
+                if (value.trim().length > 0) {
+                  p.about = value.trim();
+                } else {
+                  delete p.about;
+                }
+                return Object.assign({}, p);
+              });
+            }, 500); // 500ms debounce delay
           }}
         ></textarea>
       </fieldset>
-      <fieldset className="fieldset bg-base-100 col-span-3 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset col-span-3 p-4">
+        <legend className="fieldset-legend">
           Skills
         </legend>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="fieldset-label">Skill Group</label>
-            <div className="flex flex-row mb-2">
-              <input
-                type="text"
-                className="input join-item"
-                placeholder="Programming Languages"
-                value={skillGroup}
-                onChange={(e) => setSkillGroup(e.target.value)}
-              />
-              <button
-                className="btn btn-neutral join-item"
-                onClick={() => {
-                  // Prevent multiple clicks
-                  if (isAddingSkillGroup.current) return;
+            <div className="border border-base-300 rounded-lg p-4 bg-base-100">
+              <h3 className="font-semibold mb-3">Add Skill Group</h3>
+              <div className="flex flex-row mb-4">
+                <input
+                  type="text"
+                  className="input join-item"
+                  placeholder="Programming Languages"
+                  value={skillGroup}
+                  onChange={(e) => setSkillGroup(e.target.value)}
+                />
+                <button
+                  className="btn btn-action join-item"
+                  onClick={() => {
+                    // Prevent multiple clicks
+                    if (isAddingSkillGroup.current) return;
 
-                  if (skillGroup.trim() !== "" && !skillGroups.includes(skillGroup)) {
-                    isAddingSkillGroup.current = true;
+                    if (skillGroup.trim() !== "" && !skillGroups.includes(skillGroup)) {
+                      isAddingSkillGroup.current = true;
 
-                    const trimmedGroupName = skillGroup.trim();
+                      const trimmedGroupName = skillGroup.trim();
 
-                    // Update state
-                    setSkillGroups([...skillGroups, trimmedGroupName]);
-                    setPersonalCV((p) => {
-                      if (!p.skillDetails) {
-                        p.skillDetails = {};
-                      }
-                      if (!p.skillDetails[trimmedGroupName]) {
-                        p.skillDetails[trimmedGroupName] = [];
-                      }
-                      return Object.assign({}, p);
-                    });
+                      // Update state
+                      setSkillGroups([...skillGroups, trimmedGroupName]);
+                      setPersonalCV((p) => {
+                        if (!p.skillDetails) {
+                          p.skillDetails = {};
+                        }
+                        if (!p.skillDetails[trimmedGroupName]) {
+                          p.skillDetails[trimmedGroupName] = [];
+                        }
+                        return Object.assign({}, p);
+                      });
 
-                    // Reset input
-                    setSkillGroup("");
+                      // Reset input
+                      setSkillGroup("");
 
-                    // Reset flag after a short delay
-                    setTimeout(() => {
-                      isAddingSkillGroup.current = false;
-                    }, 100);
-                  }
-                }}
-              >
-                Add Group
-              </button>
+                      // Reset flag after a short delay
+                      setTimeout(() => {
+                        isAddingSkillGroup.current = false;
+                      }, 100);
+                    }
+                  }}
+                >
+                  Add Group
+                </button>
+              </div>
+
+              <div className="divider my-2">OR</div>
+
+              {skillGroups.length > 0 ? (
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Select Existing Group</h3>
+                  <select
+                    className="select w-full"
+                    value={skillGroup}
+                    onChange={(e) => setSkillGroup(e.target.value)}
+                  >
+                    <option value="">Select a skill group</option>
+                    {skillGroups.map((group, index) => (
+                      <option key={index} value={group}>{group}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="text-sm italic text-base-content/70 text-center py-2">
+                  No skill groups created yet
+                </div>
+              )}
             </div>
 
-            {skillGroups.length > 0 && (
-              <div className="mb-4">
-                <label className="fieldset-label">Select Group</label>
-                <select
-                  className="select w-full"
-                  onChange={(e) => setSkillGroup(e.target.value)}
-                >
-                  <option value="">Select a skill group</option>
-                  {skillGroups.map((group, index) => (
-                    <option key={index} value={group}>{group}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             {skillGroup && (
-              <div>
-                <label className="fieldset-label">Add Skill to {skillGroup}</label>
-                <div className="flex flex-col gap-2">
-                  <input
-                    type="text"
-                    className="input w-full"
-                    placeholder="Skill name"
-                    value={currentSkill}
-                    onChange={(e) => setCurrentSkill(e.target.value)}
-                  />
-                  <div className="flex items-center gap-2">
-                    <label className="fieldset-label">Experience (years):</label>
+              <div className="mt-4 border border-base-300 rounded-lg p-4 bg-base-100">
+                <h3 className="font-semibold mb-3">Add Skill to "{skillGroup}"</h3>
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="fieldset-label">Skill Name</label>
                     <input
-                      type="number"
-                      className="input w-24"
-                      min="0"
-                      max="20"
-                      value={currentSkillExperience}
-                      onChange={(e) => setCurrentSkillExperience(parseInt(e.target.value) || 0)}
+                      type="text"
+                      className="input w-full"
+                      placeholder="JavaScript"
+                      value={currentSkill}
+                      onChange={(e) => setCurrentSkill(e.target.value)}
                     />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <label className="fieldset-label">Featured:</label>
-                    <input
-                      type="checkbox"
-                      className="checkbox"
-                      checked={currentSkillFeatured}
-                      onChange={(e) => setCurrentSkillFeatured(e.target.checked)}
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="fieldset-label">Experience (years)</label>
+                      <input
+                        type="number"
+                        className="input w-full"
+                        min="0"
+                        max="20"
+                        value={currentSkillExperience}
+                        onChange={(e) => setCurrentSkillExperience(parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="flex items-end mb-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="checkbox"
+                          checked={currentSkillFeatured}
+                          onChange={(e) => setCurrentSkillFeatured(e.target.checked)}
+                        />
+                        <span>Featured Skill</span>
+                        {currentSkillFeatured && <span className="text-accent">★</span>}
+                      </label>
+                    </div>
                   </div>
+
                   <button
-                    className="btn btn-primary mt-2"
+                    className="btn btn-action w-full mt-2"
                     onClick={() => {
                       // Prevent multiple clicks
                       if (isAddingSkill.current) return;
@@ -810,20 +855,42 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
           <div>
             <label className="fieldset-label">Current Skills</label>
-            <div className="overflow-y-auto max-h-60 border border-base-300 rounded-lg p-2">
+            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-3">
               {skillGroups.map((group) => (
-                <div key={group} className="mb-4">
-                  <h3 className="font-bold">{group}</h3>
-                  <ul className="list-disc pl-5">
-                    {personalCV.skillDetails && personalCV.skillDetails[group] &&
-                      personalCV.skillDetails[group].map((skill, idx) => (
-                        <li key={idx} className="flex justify-between items-center">
+                <div key={group} className="mb-6 pb-4 border-b border-base-300 last:border-b-0 last:mb-0 last:pb-0">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-bold text-lg">{group}</h3>
+                    <button
+                      className="btn btn-xs btn-outline"
+                      onClick={() => {
+                        if (confirm(`Are you sure you want to remove the entire "${group}" skill group?`)) {
+                          setPersonalCV((p) => {
+                            if (p.skillDetails) {
+                              const newSkillDetails = {...p.skillDetails};
+                              delete newSkillDetails[group];
+                              p.skillDetails = newSkillDetails;
+                            }
+                            return Object.assign({}, p);
+                          });
+                          setSkillGroups(skillGroups.filter(g => g !== group));
+                        }
+                      }}
+                    >
+                      Remove Group
+                    </button>
+                  </div>
+
+                  {personalCV.skillDetails && personalCV.skillDetails[group] && personalCV.skillDetails[group].length > 0 ? (
+                    <div className="flex flex-wrap gap-2 ml-2">
+                      {personalCV.skillDetails[group].map((skill, idx) => (
+                        <div key={idx} className="badge badge-lg p-3 bg-base-200 text-base-content gap-1 flex items-center">
                           <span>
-                            {skill.name} ({skill.experience} years)
-                            {skill.featured && <span className="text-primary ml-2">★</span>}
+                            {skill.name}
+                            <span className="opacity-70">({skill.experience} {skill.experience === 1 ? 'year' : 'years'})</span>
+                            {skill.featured && <span className="text-accent ml-1">★</span>}
                           </span>
                           <button
-                            className="btn btn-xs btn-error"
+                            className="btn btn-xs btn-circle btn-ghost ml-1"
                             onClick={() => {
                               setPersonalCV((p) => {
                                 if (p.skillDetails && p.skillDetails[group]) {
@@ -833,21 +900,31 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
                               });
                             }}
                           >
-                            Remove
+                            ✕
                           </button>
-                        </li>
-                      ))
-                    }
-                  </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm italic text-base-content/70 ml-2">
+                      No skills added to this group yet
+                    </div>
+                  )}
                 </div>
               ))}
+
+              {skillGroups.length === 0 && (
+                <div className="text-center py-4 text-base-content/70 italic">
+                  No skill groups added yet. Add a skill group to get started.
+                </div>
+              )}
             </div>
           </div>
         </div>
       </fieldset>
 
-      <fieldset className="fieldset bg-base-100 col-span-3 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset col-span-3 p-4">
+        <legend className="fieldset-legend">
           Experiences
         </legend>
         <div className="grid grid-cols-2 gap-4">
@@ -921,7 +998,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
                 onChange={(e) => setResponsibility(e.target.value)}
               />
               <button
-                className="btn btn-neutral join-item"
+                className="btn btn-action join-item"
                 onClick={() => {
                   // Prevent multiple clicks
                   if (isAddingResponsibility.current) return;
@@ -978,7 +1055,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
                 onChange={(e) => setTechStack(e.target.value)}
               />
               <button
-                className="btn btn-neutral join-item"
+                className="btn btn-action join-item"
                 onClick={() => {
                   // Prevent multiple clicks
                   if (isAddingTechStack.current) return;
@@ -1008,7 +1085,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
             {techStacks.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-1">
                 {techStacks.map((tech, idx) => (
-                  <div key={idx} className="badge badge-primary badge-lg gap-1">
+                  <div key={idx} className="badge badge-action badge-lg gap-1">
                     {tech}
                     <button
                       className="btn btn-xs btn-circle btn-ghost"
@@ -1024,7 +1101,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
             )}
 
             <button
-              className="btn btn-primary w-full mt-4"
+              className="btn btn-action w-full mt-4"
               onClick={handleAddExperience}
             >
               Add Experience
@@ -1033,67 +1110,82 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
           <div>
             <label className="fieldset-label">Current Experiences</label>
-            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-2">
-              {personalCV.experiences && personalCV.experiences.map((exp, expIdx) => (
-                <div key={expIdx} className="mb-6 pb-4 border-b border-base-300">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-lg">{exp.companyName}</h3>
-                    <button
-                      className="btn btn-xs btn-error"
-                      onClick={() => {
-                        setPersonalCV((p) => {
-                          if (p.experiences) {
-                            p.experiences = p.experiences.filter((_, i) => i !== expIdx);
-                          }
-                          return Object.assign({}, p);
-                        });
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
+            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-3">
+              {personalCV.experiences && personalCV.experiences.length > 0 ? (
+                personalCV.experiences.map((exp, expIdx) => (
+                  <div key={expIdx} className="mb-6 pb-4 border-b border-base-300 last:border-b-0 last:mb-0 last:pb-0">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-lg">{exp.companyName}</h3>
+                      <button
+                        className="btn btn-xs btn-error"
+                        onClick={() => {
+                          setPersonalCV((p) => {
+                            if (p.experiences) {
+                              p.experiences = p.experiences.filter((_, i) => i !== expIdx);
+                            }
+                            return Object.assign({}, p);
+                          });
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
 
-                  {exp.positions.map((pos, posIdx) => (
-                    <div key={posIdx} className="ml-4 mt-2">
-                      <div className="font-semibold">{pos.role}</div>
-                      <div className="text-sm">
-                        {new Date(pos.fromDate).toLocaleDateString()} -
-                        {pos.toDate ? new Date(pos.toDate).toLocaleDateString() : 'Present'}
-                      </div>
-                      {pos.description && <p className="text-sm mt-1">{pos.description}</p>}
-
-                      {pos.responsibilities && pos.responsibilities.length > 0 && (
-                        <div className="mt-1">
-                          <span className="text-sm font-semibold">Responsibilities:</span>
-                          <ul className="list-disc pl-5 text-sm">
-                            {pos.responsibilities.map((resp, respIdx) => (
-                              <li key={respIdx}>{resp}</li>
-                            ))}
-                          </ul>
+                    {exp.positions.map((pos, posIdx) => (
+                      <div key={posIdx} className="ml-4 mt-3 p-2 bg-base-200 rounded-md">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-semibold">{pos.role}</div>
+                            <div className="text-sm opacity-80">
+                              {new Date(pos.fromDate).toLocaleDateString()} -
+                              {pos.toDate ? new Date(pos.toDate).toLocaleDateString() : 'Present'}
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {exp.techStack && exp.techStack.length > 0 && (
-                    <div className="mt-2 ml-4">
-                      <span className="text-sm font-semibold">Tech Stack:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {exp.techStack.map((tech, techIdx) => (
-                          <span key={techIdx} className="badge badge-outline">{tech}</span>
-                        ))}
+                        {pos.description && (
+                          <div className="mt-2 text-sm">
+                            <p>{pos.description}</p>
+                          </div>
+                        )}
+
+                        {pos.responsibilities && pos.responsibilities.length > 0 && (
+                          <div className="mt-2">
+                            <span className="text-sm font-semibold">Responsibilities:</span>
+                            <ul className="list-disc pl-5 text-sm mt-1">
+                              {pos.responsibilities.map((resp, respIdx) => (
+                                <li key={respIdx}>{resp}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    ))}
+
+                    {exp.techStack && exp.techStack.length > 0 && (
+                      <div className="mt-3 ml-4">
+                        <span className="text-sm font-semibold">Tech Stack:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {exp.techStack.map((tech, techIdx) => (
+                            <span key={techIdx} className="badge badge-lg bg-base-200 text-base-content">{tech}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-base-content/70 italic">
+                  No experiences added yet. Add your work experience to get started.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
       </fieldset>
 
-      <fieldset className="fieldset bg-base-100 col-span-3 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset col-span-3 p-4">
+        <legend className="fieldset-legend">
           Projects
         </legend>
         <div className="grid grid-cols-2 gap-4">
@@ -1176,7 +1268,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
                 onChange={(e) => setProjectResponsibility(e.target.value)}
               />
               <button
-                className="btn btn-neutral join-item"
+                className="btn btn-action join-item"
                 onClick={() => {
                   // Prevent multiple clicks
                   if (isAddingProjectResponsibility.current) return;
@@ -1233,7 +1325,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
                 onChange={(e) => setProjectTechStack(e.target.value)}
               />
               <button
-                className="btn btn-neutral join-item"
+                className="btn btn-action join-item"
                 onClick={() => {
                   // Prevent multiple clicks
                   if (isAddingProjectTechStack.current) return;
@@ -1263,7 +1355,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
             {projectTechStacks.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-1">
                 {projectTechStacks.map((tech, idx) => (
-                  <div key={idx} className="badge badge-primary badge-lg gap-1">
+                  <div key={idx} className="badge badge-action badge-lg gap-1">
                     {tech}
                     <button
                       className="btn btn-xs btn-circle btn-ghost"
@@ -1279,7 +1371,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
             )}
 
             <button
-              className="btn btn-primary w-full mt-4"
+              className="btn btn-action w-full mt-4"
               onClick={handleAddProject}
             >
               Add Project
@@ -1288,71 +1380,86 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
           <div>
             <label className="fieldset-label">Current Projects</label>
-            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-2">
-              {personalCV.projects && personalCV.projects.map((project, projectIdx) => (
-                <div key={projectIdx} className="mb-6 pb-4 border-b border-base-300">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-lg">{project.projectName}</h3>
-                    <button
-                      className="btn btn-xs btn-error"
-                      onClick={() => {
-                        setPersonalCV((p) => {
-                          if (p.projects) {
-                            p.projects = p.projects.filter((_, i) => i !== projectIdx);
-                          }
-                          return Object.assign({}, p);
-                        });
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
+            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-3">
+              {personalCV.projects && personalCV.projects.length > 0 ? (
+                personalCV.projects.map((project, projectIdx) => (
+                  <div key={projectIdx} className="mb-6 pb-4 border-b border-base-300 last:border-b-0 last:mb-0 last:pb-0">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-lg">{project.projectName}</h3>
+                      <button
+                        className="btn btn-xs btn-error"
+                        onClick={() => {
+                          setPersonalCV((p) => {
+                            if (p.projects) {
+                              p.projects = p.projects.filter((_, i) => i !== projectIdx);
+                            }
+                            return Object.assign({}, p);
+                          });
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
 
-                  <div className="ml-4 mt-1">
-                    <span className="badge badge-outline">{project.type}</span>
-                  </div>
+                    <div className="ml-2 mt-1 mb-2">
+                      <span className="badge badge-lg bg-base-200 text-base-content">{project.type}</span>
+                    </div>
 
-                  {project.positions.map((pos, posIdx) => (
-                    <div key={posIdx} className="ml-4 mt-2">
-                      <div className="font-semibold">{pos.role}</div>
-                      <div className="text-sm">
-                        {new Date(pos.fromDate).toLocaleDateString()} -
-                        {pos.toDate ? new Date(pos.toDate).toLocaleDateString() : 'Present'}
-                      </div>
-                      {pos.description && <p className="text-sm mt-1">{pos.description}</p>}
-
-                      {pos.responsibilities && pos.responsibilities.length > 0 && (
-                        <div className="mt-1">
-                          <span className="text-sm font-semibold">Responsibilities:</span>
-                          <ul className="list-disc pl-5 text-sm">
-                            {pos.responsibilities.map((resp, respIdx) => (
-                              <li key={respIdx}>{resp}</li>
-                            ))}
-                          </ul>
+                    {project.positions.map((pos, posIdx) => (
+                      <div key={posIdx} className="ml-4 mt-3 p-2 bg-base-200 rounded-md">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-semibold">{pos.role}</div>
+                            <div className="text-sm opacity-80">
+                              {new Date(pos.fromDate).toLocaleDateString()} -
+                              {pos.toDate ? new Date(pos.toDate).toLocaleDateString() : 'Present'}
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {project.techStack && project.techStack.length > 0 && (
-                    <div className="mt-2 ml-4">
-                      <span className="text-sm font-semibold">Tech Stack:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {project.techStack.map((tech, techIdx) => (
-                          <span key={techIdx} className="badge badge-outline">{tech}</span>
-                        ))}
+                        {pos.description && (
+                          <div className="mt-2 text-sm">
+                            <p>{pos.description}</p>
+                          </div>
+                        )}
+
+                        {pos.responsibilities && pos.responsibilities.length > 0 && (
+                          <div className="mt-2">
+                            <span className="text-sm font-semibold">Responsibilities:</span>
+                            <ul className="list-disc pl-5 text-sm mt-1">
+                              {pos.responsibilities.map((resp, respIdx) => (
+                                <li key={respIdx}>{resp}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    ))}
+
+                    {project.techStack && project.techStack.length > 0 && (
+                      <div className="mt-3 ml-4">
+                        <span className="text-sm font-semibold">Tech Stack:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {project.techStack.map((tech, techIdx) => (
+                            <span key={techIdx} className="badge badge-lg bg-base-200 text-base-content">{tech}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-base-content/70 italic">
+                  No projects added yet. Add your projects to get started.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
       </fieldset>
 
-      <fieldset className="fieldset bg-base-100 col-span-3 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset col-span-3 p-4">
+        <legend className="fieldset-legend">
           Education
         </legend>
         <div className="grid grid-cols-2 gap-4">
@@ -1455,7 +1562,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
                 onChange={(e) => setEducationNote(e.target.value)}
               />
               <button
-                className="btn btn-neutral join-item"
+                className="btn btn-action join-item"
                 onClick={() => {
                   // Prevent multiple clicks
                   if (isAddingEducationNote.current) return;
@@ -1503,7 +1610,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
             )}
 
             <button
-              className="btn btn-primary w-full mt-4"
+              className="btn btn-action w-full mt-4"
               onClick={handleAddEducation}
             >
               Add Education
@@ -1512,60 +1619,66 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
           <div>
             <label className="fieldset-label">Current Education</label>
-            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-2">
-              {personalCV.educations && personalCV.educations.map((edu, eduIdx) => (
-                <div key={eduIdx} className="mb-6 pb-4 border-b border-base-300">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-lg">{edu.schoolName}</h3>
-                    <button
-                      className="btn btn-xs btn-error"
-                      onClick={() => {
-                        setPersonalCV((p) => {
-                          if (p.educations) {
-                            p.educations = p.educations.filter((_, i) => i !== eduIdx);
-                          }
-                          return Object.assign({}, p);
-                        });
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-
-                  <div className="ml-4">
-                    <div className="text-sm">{edu.schoolLocation}</div>
-                    <div className="font-semibold mt-1">{edu.degree}</div>
-                    <div className="text-sm">
-                      {new Date(edu.entranceYear).toLocaleDateString()} -
-                      {edu.completionYear ? new Date(edu.completionYear).toLocaleDateString() : 'Present'}
+            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-3">
+              {personalCV.educations && personalCV.educations.length > 0 ? (
+                personalCV.educations.map((edu, eduIdx) => (
+                  <div key={eduIdx} className="mb-6 pb-4 border-b border-base-300 last:border-b-0 last:mb-0 last:pb-0">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-lg">{edu.schoolName}</h3>
+                      <button
+                        className="btn btn-xs btn-error"
+                        onClick={() => {
+                          setPersonalCV((p) => {
+                            if (p.educations) {
+                              p.educations = p.educations.filter((_, i) => i !== eduIdx);
+                            }
+                            return Object.assign({}, p);
+                          });
+                        }}
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <div className="text-sm">
-                      Status: <span className="badge badge-outline">{edu.currentStatus}</span>
-                      {edu.graduationScore !== undefined && (
-                        <span className="ml-2">Score: {edu.graduationScore}</span>
+
+                    <div className="ml-2 p-3 bg-base-200 rounded-md">
+                      {edu.schoolLocation && <div className="text-sm opacity-80">{edu.schoolLocation}</div>}
+                      <div className="font-semibold mt-1">{edu.degree}</div>
+                      <div className="text-sm opacity-80 mt-1">
+                        {new Date(edu.entranceYear).toLocaleDateString()} -
+                        {edu.completionYear ? new Date(edu.completionYear).toLocaleDateString() : 'Present'}
+                      </div>
+                      <div className="text-sm mt-2 flex flex-wrap gap-2">
+                        <span className="badge badge-sm bg-base-100">{edu.currentStatus}</span>
+                        {edu.graduationScore !== undefined && (
+                          <span className="badge badge-sm bg-base-100">Score: {edu.graduationScore}</span>
+                        )}
+                      </div>
+
+                      {edu.notes && edu.notes.length > 0 && (
+                        <div className="mt-3">
+                          <span className="text-sm font-semibold">Notes:</span>
+                          <ul className="list-disc pl-5 text-sm mt-1">
+                            {edu.notes.map((note, noteIdx) => (
+                              <li key={noteIdx}>{note}</li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
-
-                    {edu.notes && edu.notes.length > 0 && (
-                      <div className="mt-1">
-                        <span className="text-sm font-semibold">Notes:</span>
-                        <ul className="list-disc pl-5 text-sm">
-                          {edu.notes.map((note, noteIdx) => (
-                            <li key={noteIdx}>{note}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-base-content/70 italic">
+                  No education entries added yet. Add your education to get started.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
       </fieldset>
 
-      <fieldset className="fieldset bg-base-100 col-span-3 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset col-span-3 p-4">
+        <legend className="fieldset-legend">
           Certificates
         </legend>
         <div className="grid grid-cols-2 gap-4">
@@ -1631,7 +1744,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
             />
 
             <button
-              className="btn btn-primary w-full mt-4"
+              className="btn btn-action w-full mt-4"
               onClick={handleAddCertificate}
             >
               Add Certificate
@@ -1640,47 +1753,59 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
           <div>
             <label className="fieldset-label">Current Certificates</label>
-            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-2">
-              {personalCV.certificates && personalCV.certificates.map((cert, certIdx) => (
-                <div key={certIdx} className="mb-4 pb-3 border-b border-base-300">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold">{cert.name}</h3>
-                    <button
-                      className="btn btn-xs btn-error"
-                      onClick={() => {
-                        setPersonalCV((p) => {
-                          if (p.certificates) {
-                            p.certificates = p.certificates.filter((_, i) => i !== certIdx);
-                          }
-                          return Object.assign({}, p);
-                        });
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
+            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-3">
+              {personalCV.certificates && personalCV.certificates.length > 0 ? (
+                personalCV.certificates.map((cert, certIdx) => (
+                  <div key={certIdx} className="mb-6 pb-4 border-b border-base-300 last:border-b-0 last:mb-0 last:pb-0">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-lg">{cert.name}</h3>
+                      <button
+                        className="btn btn-xs btn-error"
+                        onClick={() => {
+                          setPersonalCV((p) => {
+                            if (p.certificates) {
+                              p.certificates = p.certificates.filter((_, i) => i !== certIdx);
+                            }
+                            return Object.assign({}, p);
+                          });
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
 
-                  <div className="ml-4">
-                    <div className="text-sm">{cert.issuingOrganization}</div>
-                    <div className="text-sm">
-                      Acquired: {new Date(cert.acquiredWhen).toLocaleDateString()}
-                      {cert.endsWhen && (
-                        <span> | Expires: {new Date(cert.endsWhen).toLocaleDateString()}</span>
+                    <div className="ml-2 p-3 bg-base-200 rounded-md">
+                      <div className="font-semibold">{cert.issuingOrganization}</div>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <span className="badge badge-sm bg-base-100">
+                          Acquired: {new Date(cert.acquiredWhen).toLocaleDateString()}
+                        </span>
+                        {cert.endsWhen && (
+                          <span className="badge badge-sm bg-base-100">
+                            Expires: {new Date(cert.endsWhen).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      {cert.verificationId && (
+                        <div className="text-sm mt-2 opacity-80">
+                          <span className="font-semibold">Verification ID:</span> {cert.verificationId}
+                        </div>
                       )}
                     </div>
-                    {cert.verificationId && (
-                      <div className="text-sm">Verification ID: {cert.verificationId}</div>
-                    )}
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-base-content/70 italic">
+                  No certificates added yet. Add your certificates to get started.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
       </fieldset>
 
-      <fieldset className="fieldset bg-base-100 col-span-3 border border-base-300 p-4">
-        <legend className="fieldset-legend text-lg bg-primary p-1">
+      <fieldset className="fieldset col-span-3 p-4">
+        <legend className="fieldset-legend">
           Languages
         </legend>
         <div className="grid grid-cols-2 gap-4">
@@ -1710,7 +1835,7 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
             </select>
 
             <button
-              className="btn btn-primary w-full"
+              className="btn btn-action w-full"
               onClick={handleAddLanguage}
             >
               Add Language
@@ -1719,28 +1844,38 @@ const PDFBuilder = ({ changeCB, onConfigChange }: Props) => {
 
           <div>
             <label className="fieldset-label">Current Languages</label>
-            <div className="overflow-y-auto max-h-60 border border-base-300 rounded-lg p-2">
-              {personalCV.languages && personalCV.languages.map((lang, langIdx) => (
-                <div key={langIdx} className="mb-2 flex justify-between items-center">
-                  <div>
-                    <span className="font-semibold">{lang.language}</span>
-                    <span className="ml-2 badge badge-primary">{lang.proficiency}</span>
-                  </div>
-                  <button
-                    className="btn btn-xs btn-error"
-                    onClick={() => {
-                      setPersonalCV((p) => {
-                        if (p.languages) {
-                          p.languages = p.languages.filter((_, i) => i !== langIdx);
-                        }
-                        return Object.assign({}, p);
-                      });
-                    }}
-                  >
-                    Remove
-                  </button>
+            <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-3">
+              {personalCV.languages && personalCV.languages.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  {personalCV.languages.map((lang, langIdx) => (
+                    <div key={langIdx} className="p-3 bg-base-200 rounded-md">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="font-semibold text-lg">{lang.language}</span>
+                          <span className="ml-2 badge badge-lg bg-base-100">{lang.proficiency}</span>
+                        </div>
+                        <button
+                          className="btn btn-xs btn-error"
+                          onClick={() => {
+                            setPersonalCV((p) => {
+                              if (p.languages) {
+                                p.languages = p.languages.filter((_, i) => i !== langIdx);
+                              }
+                              return Object.assign({}, p);
+                            });
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="text-center py-4 text-base-content/70 italic">
+                  No languages added yet. Add your language proficiencies to get started.
+                </div>
+              )}
             </div>
           </div>
         </div>

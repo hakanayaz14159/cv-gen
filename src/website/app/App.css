@@ -42,3 +42,63 @@ body {
     padding: 0;
     box-sizing: border-box;
 }
+
+/* Custom fieldset styling */
+.fieldset {
+    position: relative;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-base-300);
+    background-color: var(--color-base-200);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    margin-bottom: 1rem;
+}
+
+.fieldset:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+}
+
+.fieldset-legend {
+    font-weight: bold;
+    font-size: 1.125rem;
+    color: var(--color-base-content);
+    padding: 0.25rem 0.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid var(--color-base-300);
+}
+
+.fieldset-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: var(--color-base-content);
+    font-size: 0.95rem;
+}
+
+/* Improve input readability */
+.fieldset input, .fieldset select, .fieldset textarea {
+    background-color: var(--color-base-100);
+    border-color: var(--color-base-300);
+}
+
+.fieldset input:focus, .fieldset select:focus, .fieldset textarea:focus {
+    border-color: var(--color-accent);
+    outline: none;
+}
+
+/* Custom button styling */
+.btn-action {
+    background-color: var(--color-accent);
+    color: var(--color-accent-content);
+    border: none;
+}
+
+.btn-action:hover {
+    background-color: color-mix(in oklch, var(--color-accent) 90%, black);
+}
+
+/* Badge styling */
+.badge-action {
+    background-color: var(--color-accent);
+    color: var(--color-accent-content);
+}
