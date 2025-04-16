@@ -4,32 +4,50 @@ import { useEffect, useState, useCallback } from "react";
 import { CVGeneratorConfig } from "../../lib/types";
 import { CVSection } from "../../lib/enum";
 import { jsPDF } from "jspdf";
+import DataManagement from "./DataManagement";
 
 type Props = {
   onConfigChange?: (config: CVGeneratorConfig) => void;
 };
 
 const ConfigPage = ({ onConfigChange }: Props = {}) => {
-  const [config, setConfig] = useState<CVGeneratorConfig>({
-    marginX: 10,
-    marginY: 15,
-    lineSpacing: 7,
-    font: "Helvetica",
-    fontScale: 1,
-    titleLocation: "left",
-    languageGrader: "common",
-    contactOrientation: "horizontal",
-    layout: [
-      CVSection.ABOUT,
-      CVSection.SKILLS,
-      CVSection.EXPERIENCES,
-      CVSection.PROJECTS,
-      CVSection.EDUCATION,
-      CVSection.CERTIFICATES,
-      CVSection.LANGUAGES,
-    ],
-  });
+  // Get the initial config from localStorage
+  const getInitialConfig = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedConfig = localStorage.getItem('cv-gen-config');
+        if (savedConfig) {
+          const parsedConfig = JSON.parse(savedConfig);
+          console.log('ConfigPage: Initializing with saved config:', parsedConfig);
+          return parsedConfig;
+        }
+      } catch (error) {
+        console.error('Error loading initial config:', error);
+      }
+    }
+    return {
+      marginX: 10,
+      marginY: 15,
+      lineSpacing: 7,
+      font: "Helvetica",
+      fontScale: 1,
+      titleLocation: "left",
+      languageGrader: "common",
+      contactOrientation: "horizontal",
+      layout: [
+        CVSection.ABOUT,
+        CVSection.SKILLS,
+        CVSection.EXPERIENCES,
+        CVSection.PROJECTS,
+        CVSection.EDUCATION,
+        CVSection.CERTIFICATES,
+        CVSection.LANGUAGES,
+      ],
+    };
+  };
 
+  const [config, setConfig] = useState<CVGeneratorConfig>(getInitialConfig());
+  const [isInitialized, setIsInitialized] = useState(false);
   const [availableFonts, setAvailableFonts] = useState<string[]>([]);
   const [sectionOrder, setSectionOrder] = useState<CVSection[]>(config.layout || []);
 
@@ -64,10 +82,13 @@ const ConfigPage = ({ onConfigChange }: Props = {}) => {
 
   // Update config when any value changes
   useEffect(() => {
-    if (onConfigChange) {
+    // Only update the parent if we've already initialized or have non-default config
+    if (onConfigChange && (isInitialized || Object.keys(config).length > 0)) {
+      console.log('ConfigPage: Calling onConfigChange with:', config);
       onConfigChange(config);
+      setIsInitialized(true);
     }
-  }, [config, onConfigChange]);
+  }, [config, onConfigChange, isInitialized]);
 
   // Update section order in config
   useEffect(() => {
@@ -360,6 +381,16 @@ const ConfigPage = ({ onConfigChange }: Props = {}) => {
           <p className="text-center">Your changes are automatically applied to the PDF preview on the right.</p>
           <p className="text-center text-sm mt-2 opacity-70">The preview updates in real-time as you modify the configuration settings.</p>
         </div>
+      </fieldset>
+
+      {/* Data Management Section */}
+      <fieldset className="fieldset p-4 col-span-1 md:col-span-2">
+        <legend className="fieldset-legend">Data Management</legend>
+
+        <DataManagement
+          onDataImported={() => window.location.reload()}
+          onDataCleared={() => window.location.reload()}
+        />
       </fieldset>
     </div>
   );

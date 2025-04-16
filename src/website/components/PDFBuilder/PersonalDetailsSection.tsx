@@ -22,8 +22,9 @@ const PersonalDetailsSection = ({ personalCV, setPersonalCV }: Props) => {
         value={personalCV.name || ""}
         onChange={(e) => {
           setPersonalCV((p) => {
+            // Allow spaces in the name, only trim to check if it's empty
             if (e.target.value.trim().length > 0) {
-              p.name = e.target.value.trim();
+              p.name = e.target.value; // Don't trim the actual value
             } else {
               delete p.name;
             }
@@ -40,8 +41,9 @@ const PersonalDetailsSection = ({ personalCV, setPersonalCV }: Props) => {
         value={personalCV.personalTitle || ""}
         onChange={(e) => {
           setPersonalCV((p) => {
+            // Allow spaces in the title, only trim to check if it's empty
             if (e.target.value.trim().length > 0) {
-              p.personalTitle = e.target.value.trim();
+              p.personalTitle = e.target.value; // Don't trim the actual value
             } else {
               delete p.personalTitle;
             }

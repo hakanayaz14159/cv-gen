@@ -8,7 +8,7 @@ const FADE_DURATION = 500;
 const DEBOUNCE_DELAY = 800;
 
 type Props = ComponentProps<"iframe"> & {
-  cvData: CVInformations;
+  cvData: CVInformations | null;
   configOverride: CVGeneratorConfig;
 };
 
@@ -32,8 +32,9 @@ const PDFViewer = ({ cvData, configOverride }: Props) => {
     if (!cvData) return;
 
     try {
+      console.log('Generating PDF with data:', cvData);
       // Generate the PDF
-      const newPdfSrc = generatorRef.current.generateCV(cvData, configOverride);
+      const newPdfSrc = generatorRef.current.generateCV(cvData, configOverride).output("datauristring", { filename: "CV.pdf" });
 
       // Update the PDF source
       setPdfSrc(newPdfSrc);
@@ -107,7 +108,7 @@ const PDFViewer = ({ cvData, configOverride }: Props) => {
 
   return (
     <div className="basis-1 grow h-lvh relative">
-      {cvData ? (
+      {pdfSrc ? (
         <iframe
           title="pdf-view"
           className="w-full h-full"
@@ -116,6 +117,7 @@ const PDFViewer = ({ cvData, configOverride }: Props) => {
       ) : (
         <div className="w-full h-full flex flex-col justify-center items-center">
           <span className="loading loading-ring loading-xl"></span>
+          <p className="mt-4 text-lg">Loading CV...</p>
         </div>
       )}
 

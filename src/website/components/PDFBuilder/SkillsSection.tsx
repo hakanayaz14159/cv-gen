@@ -5,9 +5,19 @@ import { CVInformations, CVSkill } from "../../../lib/types";
 import AddItemInput from "./shared/AddItemInput";
 import ItemsList from "./shared/ItemsList";
 
+// Extended CVSkill type with group property for UI purposes
+interface ExtendedCVSkill extends CVSkill {
+  group: string;
+}
+
+// Extended CVInformations type with skills array for UI purposes
+interface ExtendedCVInformations extends Partial<CVInformations> {
+  skills?: ExtendedCVSkill[];
+}
+
 type Props = {
-  personalCV: Partial<CVInformations>;
-  setPersonalCV: Dispatch<SetStateAction<Partial<CVInformations>>>;
+  personalCV: ExtendedCVInformations;
+  setPersonalCV: Dispatch<SetStateAction<ExtendedCVInformations>>;
 };
 
 const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
@@ -18,41 +28,40 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
   const [currentSkillExperience, setCurrentSkillExperience] = useState<number>(0);
   const [currentSkillFeatured, setCurrentSkillFeatured] = useState<boolean>(false);
 
-  // Refs to prevent double submissions
+  // Ref to prevent double submissions
   const isAddingSkill = useRef(false);
-  const isAddingSkillGroup = useRef(false);
 
   // Initialize skill groups from CV data if it exists
   useEffect(() => {
     if (personalCV.skills) {
-      const groups = [...new Set(personalCV.skills.map(skill => skill.group))];
-      setSkillGroups(groups);
+      const groups = [...new Set(personalCV.skills.map((skill: ExtendedCVSkill) => skill.group))];
+      setSkillGroups(groups as string[]);
     }
   }, []);
 
   const handleAddSkillGroup = (newGroup: string) => {
     if (skillGroups.includes(newGroup)) return;
-    
+
     setSkillGroups(prev => [...prev, newGroup]);
     setSkillGroup(newGroup);
   };
 
   const handleRemoveSkillGroup = (index: number) => {
     const groupToRemove = skillGroups[index];
-    
+
     // Remove the group from the list
     setSkillGroups(prev => prev.filter((_, i) => i !== index));
-    
+
     // If the current selected group is being removed, reset it
     if (skillGroup === groupToRemove) {
       setSkillGroup("");
     }
-    
+
     // Remove all skills with this group from the CV
     setPersonalCV(prev => {
-      const newCV = { ...prev };
+      const newCV = { ...prev } as ExtendedCVInformations;
       if (newCV.skills) {
-        newCV.skills = newCV.skills.filter(skill => skill.group !== groupToRemove);
+        newCV.skills = newCV.skills.filter((skill: ExtendedCVSkill) => skill.group !== groupToRemove);
       }
       return newCV;
     });
@@ -60,32 +69,32 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
 
   const handleAddSkill = () => {
     if (isAddingSkill.current || !currentSkill.trim() || !skillGroup) return;
-    
+
     isAddingSkill.current = true;
-    
+
     // Create the new skill
-    const newSkill: CVSkill = {
+    const newSkill: ExtendedCVSkill = {
       name: currentSkill.trim(),
       group: skillGroup,
       experience: currentSkillExperience,
       featured: currentSkillFeatured
     };
-    
+
     // Add the skill to the CV
     setPersonalCV(prev => {
-      const newCV = { ...prev };
+      const newCV = { ...prev } as ExtendedCVInformations;
       if (!newCV.skills) {
         newCV.skills = [];
       }
       newCV.skills = [...newCV.skills, newSkill];
       return newCV;
     });
-    
+
     // Reset the form
     setCurrentSkill("");
     setCurrentSkillExperience(0);
     setCurrentSkillFeatured(false);
-    
+
     // Reset the flag after a delay
     setTimeout(() => {
       isAddingSkill.current = false;
@@ -104,13 +113,13 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
             placeholder="Frontend, Backend, DevOps, etc."
             onAdd={handleAddSkillGroup}
           />
-          
+
           <ItemsList
             items={skillGroups}
             onRemove={handleRemoveSkillGroup}
             emptyMessage="No skill groups added yet. Add a group to categorize your skills."
           />
-          
+
           <div className="mt-4">
             <label className="fieldset-label">Add Skill</label>
             <div className="mb-2">
@@ -127,7 +136,7 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
                 ))}
               </select>
             </div>
-            
+
             <div className="mb-2">
               <label className="text-sm">Skill Name</label>
               <input
@@ -139,7 +148,7 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
                 disabled={!skillGroup}
               />
             </div>
-            
+
             <div className="mb-2">
               <label className="text-sm">Experience (years)</label>
               <input
@@ -152,7 +161,7 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
                 disabled={!skillGroup}
               />
             </div>
-            
+
             <div className="mb-4 flex items-center">
               <input
                 type="checkbox"
@@ -163,7 +172,7 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
               />
               <label className="text-sm">Featured Skill</label>
             </div>
-            
+
             <button
               className="btn btn-action w-full"
               onClick={handleAddSkill}
@@ -173,21 +182,21 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
             </button>
           </div>
         </div>
-        
+
         <div>
           <label className="fieldset-label">Current Skills</label>
           <div className="overflow-y-auto max-h-96 border border-base-300 rounded-lg p-3">
             {personalCV.skills && personalCV.skills.length > 0 ? (
               <div>
                 {skillGroups.map((group) => {
-                  const groupSkills = personalCV.skills?.filter(skill => skill.group === group) || [];
+                  const groupSkills = personalCV.skills?.filter((skill: ExtendedCVSkill) => skill.group === group) || [];
                   if (groupSkills.length === 0) return null;
-                  
+
                   return (
                     <div key={group} className="mb-4">
                       <h3 className="font-semibold text-lg mb-2">{group}</h3>
                       <div className="flex flex-wrap gap-2 ml-2">
-                        {groupSkills.map((skill, skillIdx) => (
+                        {groupSkills.map((skill: ExtendedCVSkill, skillIdx: number) => (
                           <div key={skillIdx} className="badge badge-lg bg-base-200 text-base-content flex items-center gap-1">
                             <span>{skill.name}</span>
                             {skill.experience > 0 && (
@@ -200,12 +209,12 @@ const SkillsSection = ({ personalCV, setPersonalCV }: Props) => {
                               className="ml-1 text-xs hover:text-error"
                               onClick={() => {
                                 setPersonalCV(prev => {
-                                  const newCV = { ...prev };
+                                  const newCV = { ...prev } as ExtendedCVInformations;
                                   if (newCV.skills) {
                                     // Find the exact skill to remove
-                                    const skillIndex = newCV.skills.findIndex(s => 
-                                      s.name === skill.name && 
-                                      s.group === skill.group && 
+                                    const skillIndex = newCV.skills.findIndex((s: ExtendedCVSkill) =>
+                                      s.name === skill.name &&
+                                      s.group === skill.group &&
                                       s.experience === skill.experience
                                     );
                                     if (skillIndex !== -1) {

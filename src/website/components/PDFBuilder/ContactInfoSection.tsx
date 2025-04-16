@@ -13,7 +13,7 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
   // Contact information state
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedCountryCode, setSelectedCountryCode] = useState("+1");
-  
+
   // Initialize phone number from CV data if it exists
   useEffect(() => {
     if (personalCV.contactInformations?.phoneNumber) {
@@ -91,7 +91,7 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
             }}
           >
             {COMMON_COUNTRY_CODES.map((country) => (
-              <option key={country.code} value={country.code}>
+              <option key={country.name} value={country.code}>
                 {country.flag} {country.code} ({country.name})
               </option>
             ))}
@@ -128,7 +128,7 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
         type="text"
         className="input w-full"
         placeholder="https://www.example.com"
-        value={personalCV.contactInformations?.website || ""}
+        value={personalCV.contactInformations?.webpage || ""}
         onChange={(e) => {
           const website = formatUrl(e.target.value);
           setPersonalCV((p) => {
@@ -137,9 +137,9 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
             }
 
             if (website.trim().length > 0) {
-              p.contactInformations.website = website;
+              p.contactInformations.webpage = website;
             } else {
-              delete p.contactInformations.website;
+              delete p.contactInformations.webpage;
             }
 
             return Object.assign({}, p);
@@ -151,7 +151,7 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
         type="text"
         className="input w-full"
         placeholder="https://www.linkedin.com/in/username"
-        value={personalCV.contactInformations?.linkedin || ""}
+        value={personalCV.contactInformations?.linkedIn || ""}
         onChange={(e) => {
           const linkedin = formatUrl(e.target.value);
           setPersonalCV((p) => {
@@ -160,9 +160,9 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
             }
 
             if (linkedin.trim().length > 0) {
-              p.contactInformations.linkedin = linkedin;
+              p.contactInformations.linkedIn = linkedin;
             } else {
-              delete p.contactInformations.linkedin;
+              delete p.contactInformations.linkedIn;
             }
 
             return Object.assign({}, p);
@@ -186,29 +186,6 @@ const ContactInfoSection = ({ personalCV, setPersonalCV }: Props) => {
               p.contactInformations.github = github;
             } else {
               delete p.contactInformations.github;
-            }
-
-            return Object.assign({}, p);
-          });
-        }}
-      />
-      <label className="fieldset-label">Location</label>
-      <input
-        type="text"
-        className="input w-full"
-        placeholder="New York, NY"
-        value={personalCV.contactInformations?.location || ""}
-        onChange={(e) => {
-          const location = e.target.value.trim();
-          setPersonalCV((p) => {
-            if (p.contactInformations === undefined) {
-              p.contactInformations = {};
-            }
-
-            if (location.length > 0) {
-              p.contactInformations.location = location;
-            } else {
-              delete p.contactInformations.location;
             }
 
             return Object.assign({}, p);
