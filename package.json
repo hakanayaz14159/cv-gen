@@ -9,7 +9,7 @@
   "scripts": {
     "build:lib": "parcel build",
     "dev": "next dev src/website --turbopack",
-    "build:webiste": "next build src/website",
+    "build:website": "next build src/website",
     "lint": "next lint src/website"
   },
   "keywords": [
