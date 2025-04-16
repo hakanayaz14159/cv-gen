@@ -1,12 +1,12 @@
 "use client";
-import PDFViewer from "@/components/PDFViewer";
-import { softwareEngineerCV as dummyCV } from "helper/dummyCV";
+import PDFViewer from "../components/PDFViewer";
+import { softwareEngineerCV as dummyCV } from "../helper/dummyCV";
 import { useCallback, useState } from "react";
 import { CVGeneratorConfig, CVInformations } from "../../lib/types";
-import PDFBuilder from "@/components/PDFBuilder";
-import TabContainer from "@/components/TabContainer";
-import HomePage from "@/components/HomePage";
-import ConfigPage from "@/components/ConfigPage";
+import PDFBuilder from "../components/PDFBuilder";
+import TabContainer from "../components/TabContainer";
+import HomePage from "../components/HomePage";
+import ConfigPage from "../components/ConfigPage";
 
 export default function Page() {
   // Initialize with dummy CV to avoid null state
@@ -39,12 +39,12 @@ export default function Page() {
     {
       id: "cv",
       label: "CV",
-      content: <PDFBuilder changeCB={onCVChange} onConfigChange={onConfigChange} />
+      content: <PDFBuilder changeCB={onCVChange} />
     },
     {
       id: "config",
       label: "Config",
-      content: <ConfigPage />
+      content: <ConfigPage onConfigChange={onConfigChange} />
     }
   ];
 
