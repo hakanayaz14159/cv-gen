@@ -1066,10 +1066,6 @@ export class CVGenerator implements CVGeneratorInterface {
 
     this.config = baseConfig;
 
-    return this.newpdf();
-  }
-
-  newpdf() {
-    return this.doc.output("datauristring", { filename: "CV.pdf" });
+    return this.doc;
   }
 }
