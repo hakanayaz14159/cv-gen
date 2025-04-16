@@ -17,7 +17,6 @@ export default function Page() {
     (personalCV: Partial<CVInformations>) => {
       // Merge personal CV with dummy CV
       const merged = Object.assign({}, dummyCV, personalCV);
-      console.log('CV updated');
       setMergedCV(merged);
     },
     [setMergedCV],

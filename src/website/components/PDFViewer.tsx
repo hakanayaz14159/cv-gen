@@ -57,7 +57,6 @@ const PDFViewer = ({ cvData, configOverride }: Props) => {
     // Skip if no data or already initialized
     if (!cvData || isInitialized) return;
 
-    console.log('Initial PDF generation');
     setIsInitialized(true);
     isLoadingRef.current = true;
 

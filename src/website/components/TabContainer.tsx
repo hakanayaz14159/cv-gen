@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 
 type Tab = {
   id: string;
@@ -24,9 +24,8 @@ const TabContainer = ({ tabs, defaultActiveTab }: Props) => {
       <div role="tablist" className="tabs tabs-lift">
         {/* Tab inputs (hidden but functional) */}
         {tabs.map((tab, index) => (
-          <>
+          <React.Fragment key={tab.id}>
             <input
-              key={`${tab.id}-input`}
               type="radio"
               name="tabs"
               role="tab"
@@ -35,13 +34,12 @@ const TabContainer = ({ tabs, defaultActiveTab }: Props) => {
               defaultChecked={index === defaultTab}
             />
             <div
-              key={`${tab.id}-content`}
               role="tabpanel"
               className="tab-content bg-base-100 border-base-300 rounded-box p-6"
             >
               {tab.content}
             </div>
-          </>
+          </React.Fragment>
         ))}
       </div>
     </div>
